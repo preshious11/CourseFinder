@@ -16,7 +16,13 @@ from telegram.ext import (
 )
 
 from .config import Config
-from .providers import Course, Provider, RSSCouponProvider, UdemyAffiliateProvider
+from .providers import (
+    Course,
+    Provider,
+    RSSCouponProvider,
+    TutorialBarProvider,
+    UdemyAffiliateProvider,
+)
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -77,6 +83,12 @@ class CourseBot:
         self.store = Store(config.db_path)
         self.providers: list[Provider] = []
 
+        if config.tutorialbar:
+            self.providers.append(
+                TutorialBarProvider(
+                    categories=config.tutorialbar_categories or None
+                )
+            )
         if config.has_udemy_api:
             self.providers.append(
                 UdemyAffiliateProvider(
@@ -91,7 +103,8 @@ class CourseBot:
         if not self.providers:
             log.warning(
                 "No providers configured - the bot will run but never find "
-                "anything. Set UDEMY_CLIENT_ID/SECRET or COUPON_FEEDS."
+                "anything. Set TUTORIALBAR=true, UDEMY_CLIENT_ID/SECRET, or "
+                "COUPON_FEEDS."
             )
 
     # ---------- commands ----------
@@ -191,14 +204,27 @@ class CourseBot:
             log.info("Poll complete: nothing new (%d checked)", len(courses))
             return
 
-        # Record everything immediately, but only announce a capped slice.
-        # On first run this stops the bot dumping hundreds of messages.
-        self.store.mark_seen(new)
+        # First ever poll: the whole catalogue looks new, and nobody wants
+        # ninety messages as a greeting. Record it as the baseline and start
+        # announcing from the next genuinely new course.
+        if self.store.seen_count() == 0:
+            self.store.mark_seen(new)
+            log.info("Cold start: baselined %d courses without announcing", len(new))
+            return
+
+        # Only mark what we actually announce. Anything over the per-cycle cap
+        # stays unseen and goes out next cycle instead of being dropped.
         to_send = new[: self.config.max_per_cycle]
-        log.info("Found %d new; announcing %d", len(new), len(to_send))
+        log.info(
+            "Found %d new; announcing %d (%d queued for later)",
+            len(new),
+            len(to_send),
+            len(new) - len(to_send),
+        )
 
         for course in to_send:
             await self.broadcast(ctx, course)
+        self.store.mark_seen(to_send)
 
     async def broadcast(self, ctx: ContextTypes.DEFAULT_TYPE, course: Course) -> None:
         text = format_course(course)

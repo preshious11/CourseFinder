@@ -27,8 +27,20 @@ usually valid for a few days or a few hundred redemptions. They do *not* show up
 as free in the API. They come from coupon aggregators, several of which publish
 RSS feeds.
 
-`RSSCouponProvider` handles the second case. Point it at feeds you're permitted
-to use and check each one's terms — some allow redistribution, some don't.
+Two providers handle the second case.
+
+`TutorialBarProvider` is the default and needs no credentials. tutorialbar.com
+publishes the coupons it tracks as structured data embedded in its pages, so the
+provider reads that directly rather than scraping rendered HTML — one request
+returns a dozen fully-populated courses, and fetching the front page plus each
+category yields roughly 90 live courses per poll.
+
+`RSSCouponProvider` adds breadth from coupon feeds. Point it at feeds you're
+permitted to use and check each one's terms — some allow redistribution, some
+don't. Be aware that many aggregators either block non-browser traffic or only
+link to their own landing pages rather than to udemy.com, in which case they
+contribute nothing; the logs report per-feed counts so you can tell.
+
 Scraping udemy.com directly is against their Terms of Service and their bot
 protection will block you anyway, so it isn't implemented here.
 
@@ -42,9 +54,14 @@ python -m bot.main
 ```
 
 You need at minimum a `TELEGRAM_BOT_TOKEN` from [@BotFather](https://t.me/BotFather).
-Then configure at least one source — Udemy API credentials, coupon feed URLs, or
-both. With neither set the bot runs and responds to commands but never finds
-anything.
+Everything else has working defaults: `TUTORIALBAR=true` is on out of the box, so
+the bot finds courses without any credentials. Add Udemy API credentials or
+coupon feed URLs to widen coverage.
+
+The first poll is a cold start: it records everything it finds as a baseline
+without announcing it, so you don't get ninety messages as a greeting. From then
+on new courses go out at up to `MAX_PER_CYCLE` per poll, and anything over that
+cap is announced on following polls rather than dropped.
 
 ## Commands
 

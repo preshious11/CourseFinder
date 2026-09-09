@@ -1,0 +1,38 @@
+2026-09-08 16:33:52,237 INFO     apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-09-08 16:33:52,237 INFO     apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-09-08 16:33:52,237 INFO     root: Starting bot | sources=['tutorialbar', 'rss-coupons'] | interval=3600s
+2026-09-08 16:33:53,387 INFO     apscheduler.scheduler: Added job "poll_job" to job store "default"
+2026-09-08 16:33:53,387 INFO     apscheduler.scheduler: Added job "prune_job" to job store "default"
+2026-09-08 16:33:53,387 INFO     apscheduler.scheduler: Scheduler started
+2026-09-08 16:33:53,387 INFO     telegram.ext.Application: Application started
+2026-09-08 16:34:07,252 INFO     apscheduler.executors.default: Running job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-08 16:34:07 UTC)" (scheduled at 2026-09-08 15:34:07.236672+00:00)
+2026-09-08 16:34:08,977 INFO     bot.providers: Feed https://www.reddit.com/r/udemyfreebies/.rss: 13 entries, 2 with a Udemy course link
+2026-09-08 16:34:10,654 INFO     bot.providers: tutorialbar: 87 courses from 14/14 pages (15 expired skipped)
+2026-09-08 16:34:13,000 INFO     bot.providers: Feed https://freebiesglobal.com/feed: 15 entries, 1 with a Udemy course link
+2026-09-08 16:34:13,000 INFO     bot.providers: rss-coupons: 3 courses
+2026-09-08 16:34:13,005 INFO     bot.telegram_bot: Cold start: baselined 90 courses without announcing
+2026-09-08 16:34:13,005 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-08 16:34:07 UTC)" executed successfully
+2026-09-09 11:53:16,763 INFO     apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-09-09 11:53:16,764 INFO     apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-09-09 11:53:16,764 INFO     root: Starting bot | sources=['tutorialbar', 'rss-coupons'] | interval=3600s
+2026-09-09 11:53:22,146 INFO     apscheduler.scheduler: Added job "poll_job" to job store "default"
+2026-09-09 11:53:22,146 INFO     apscheduler.scheduler: Added job "prune_job" to job store "default"
+2026-09-09 11:53:22,146 INFO     apscheduler.scheduler: Scheduler started
+2026-09-09 11:53:22,147 INFO     telegram.ext.Application: Application started
+2026-09-09 11:53:31,768 INFO     apscheduler.executors.default: Running job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 11:53:31 UTC)" (scheduled at 2026-09-09 10:53:31.762567+00:00)
+2026-09-09 11:53:33,312 INFO     bot.providers: Feed https://www.reddit.com/r/udemyfreebies/.rss: 13 entries, 2 with a Udemy course link
+2026-09-09 11:53:35,172 INFO     bot.providers: tutorialbar: 98 courses from 14/14 pages (5 expired skipped)
+2026-09-09 11:53:39,421 INFO     bot.providers: Feed https://freebiesglobal.com/feed: 15 entries, 1 with a Udemy course link
+2026-09-09 11:53:39,423 INFO     bot.providers: rss-coupons: 3 courses
+2026-09-09 11:53:39,426 INFO     bot.telegram_bot: Found 73 new; announcing 10 (63 queued for later)
+2026-09-09 11:53:40,219 INFO     bot.telegram_bot: Sent 'KCNA Practice Exams Prep Questions for K' to 1 subscribers
+2026-09-09 11:53:40,584 INFO     bot.telegram_bot: Sent 'Financial Services: Sovereign Wealth & N' to 1 subscribers
+2026-09-09 11:53:40,964 INFO     bot.telegram_bot: Sent 'The Complete Da Vinci Resolve Course: Be' to 1 subscribers
+2026-09-09 11:53:41,363 INFO     bot.telegram_bot: Sent 'Become RPA Master in Microsoft Power Aut' to 1 subscribers
+2026-09-09 11:53:41,755 INFO     bot.telegram_bot: Sent 'Time Management, Productivity, Decision ' to 1 subscribers
+2026-09-09 11:53:42,124 INFO     bot.telegram_bot: Sent 'Sales Mastery: Complete Prospecting-to-C' to 1 subscribers
+2026-09-09 11:53:42,544 INFO     bot.telegram_bot: Sent 'Visualization Techniques for Decision Ma' to 1 subscribers
+2026-09-09 11:53:42,928 INFO     bot.telegram_bot: Sent 'Economics for Everyone in a Digital Firs' to 1 subscribers
+2026-09-09 11:53:43,313 INFO     bot.telegram_bot: Sent 'Technology for Non Technology Decision M' to 1 subscribers
+2026-09-09 11:53:43,683 INFO     bot.telegram_bot: Sent 'SMART Goals Parenting' to 1 subscribers
+2026-09-09 11:53:43,695 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 11:53:31 UTC)" executed successfully

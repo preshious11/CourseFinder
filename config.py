@@ -4,10 +4,27 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 
+PACKAGE_DIR = Path(__file__).resolve().parent
+
 load_dotenv()
+
+
+def _resolve(path: str) -> str:
+    """Anchor a relative path to the package, not the working directory.
+
+    The bot is documented to run as `python -m bot.main` from the parent
+    directory, but it also gets run from inside the package. With a bare
+    relative DB_PATH those two produce *different* databases, so the bot
+    quietly loses its subscribers depending on where it was launched from.
+    """
+    candidate = Path(path).expanduser()
+    if candidate.is_absolute():
+        return str(candidate)
+    return str(PACKAGE_DIR / candidate)
 
 
 def _int(name: str, default: int) -> int:
@@ -17,12 +34,21 @@ def _int(name: str, default: int) -> int:
         return default
 
 
+def _bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw in {"1", "true", "yes", "on"}
+
+
 @dataclass
 class Config:
     telegram_token: str
     udemy_client_id: str | None
     udemy_client_secret: str | None
     coupon_feeds: list[str]
+    tutorialbar: bool           # the no-credentials default source
+    tutorialbar_categories: list[str]
     db_path: str
     poll_interval: int          # seconds between checks
     max_per_cycle: int          # cap announcements so nobody gets 200 messages
@@ -44,13 +70,20 @@ class Config:
             if u.strip()
         ]
         admin = os.getenv("ADMIN_CHAT_ID", "").strip()
+        categories = [
+            c.strip()
+            for c in os.getenv("TUTORIALBAR_CATEGORIES", "").split(",")
+            if c.strip()
+        ]
 
         return cls(
             telegram_token=token,
             udemy_client_id=os.getenv("UDEMY_CLIENT_ID") or None,
             udemy_client_secret=os.getenv("UDEMY_CLIENT_SECRET") or None,
             coupon_feeds=feeds,
-            db_path=os.getenv("DB_PATH", "bot.db"),
+            tutorialbar=_bool("TUTORIALBAR", True),
+            tutorialbar_categories=categories,
+            db_path=_resolve(os.getenv("DB_PATH", "bot.db")),
             poll_interval=_int("POLL_INTERVAL", 3600),
             max_per_cycle=_int("MAX_PER_CYCLE", 10),
             language=os.getenv("LANGUAGE", "en"),
