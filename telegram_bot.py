@@ -23,7 +23,7 @@ from providers import (
     TutorialBarProvider,
     UdemyAffiliateProvider,
 )
-from .store import Store
+from store import Store
 
 log = logging.getLogger(__name__)
 
