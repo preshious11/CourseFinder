@@ -3,8 +3,8 @@
 import asyncio
 import logging
 
-from .config import Config
-from .telegram_bot import CourseBot
+from config import Config
+from telegram_bot import CourseBot
 
 logging.basicConfig(
     level=logging.INFO,

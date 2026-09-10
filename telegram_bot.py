@@ -15,8 +15,8 @@ from telegram.ext import (
     ContextTypes,
 )
 
-from .config import Config
-from .providers import (
+from config import Config
+from providers import (
     Course,
     Provider,
     RSSCouponProvider,
