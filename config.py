@@ -49,6 +49,16 @@ class Config:
     coupon_feeds: list[str]
     tutorialbar: bool           # the no-credentials default source
     tutorialbar_categories: list[str]
+
+    # Multi-platform /search. Each flag gates one platform; a platform that is
+    # off, or whose credentials are absent, is skipped rather than failing the
+    # whole search.
+    search_coursera: bool
+    search_edx: bool
+    search_mit: bool
+    search_freecodecamp: bool
+    search_catalogue_pages: int   # how deep to scan catalogues that lack search
+    search_timeout: float
     db_path: str
     poll_interval: int          # seconds between checks
     max_per_cycle: int          # cap announcements so nobody gets 200 messages
@@ -83,6 +93,12 @@ class Config:
             coupon_feeds=feeds,
             tutorialbar=_bool("TUTORIALBAR", True),
             tutorialbar_categories=categories,
+            search_coursera=_bool("SEARCH_COURSERA", True),
+            search_edx=_bool("SEARCH_EDX", True),
+            search_mit=_bool("SEARCH_MIT", True),
+            search_freecodecamp=_bool("SEARCH_FREECODECAMP", True),
+            search_catalogue_pages=_int("SEARCH_CATALOGUE_PAGES", 5),
+            search_timeout=float(_int("SEARCH_TIMEOUT", 25)),
             db_path=_resolve(os.getenv("DB_PATH", "bot.db")),
             poll_interval=_int("POLL_INTERVAL", 3600),
             max_per_cycle=_int("MAX_PER_CYCLE", 10),

@@ -7,7 +7,7 @@ import html
 import logging
 
 from telegram import Update
-from telegram.constants import ParseMode
+from telegram.constants import ChatAction, ParseMode
 from telegram.error import Forbidden, RetryAfter, TelegramError
 from telegram.ext import (
     Application,
@@ -17,11 +17,19 @@ from telegram.ext import (
 
 from config import Config
 from providers import (
+    PROVIDER_LABELS,
     Course,
     Provider,
     RSSCouponProvider,
     TutorialBarProvider,
     UdemyAffiliateProvider,
+)
+from search_providers import (
+    CourseraProvider,
+    EdXProvider,
+    FreeCodeCampProvider,
+    MITProvider,
+    search_all_providers,
 )
 from store import Store
 
@@ -34,6 +42,7 @@ WELCOME = (
     "👋 <b>Free Udemy course alerts</b>\n\n"
     "You're subscribed. I'll message you whenever I find a new free course.\n\n"
     "<b>Commands</b>\n"
+    "/search python - search courses across every platform\n"
     "/latest - the most recent finds\n"
     "/filter python, design - only get courses matching these keywords\n"
     "/filter off - remove your filter\n"
@@ -66,6 +75,37 @@ def format_course(course: Course) -> str:
         lines.append(f"⏳ {html.escape(str(course.expires))}")
 
     lines.append(f'\n<a href="{html.escape(course.url, quote=True)}">Enrol free →</a>')
+    return "\n".join(lines)
+
+
+def format_search_results(query: str, courses: list[Course]) -> str:
+    """Render multi-platform search results, labelled by platform."""
+    title = query.strip().title()
+    lines = [f"📚 <b>{html.escape(title)} Courses</b>\n"]
+
+    for index, course in enumerate(courses, start=1):
+        lines.append(f"<b>{index}. {html.escape(course.title)}</b>")
+        lines.append(f"🏫 {html.escape(course.provider)}")
+
+        # Only show the fields this platform actually supplied.
+        meta = []
+        if course.instructor:
+            meta.append(f"👤 {html.escape(course.instructor)}")
+        if course.rating:
+            meta.append(f"⭐ {course.rating:.1f}")
+        if course.price:
+            meta.append(f"💰 {html.escape(course.price)}")
+        if course.duration:
+            meta.append(f"⏱ {html.escape(course.duration)}")
+        if course.level:
+            meta.append(f"📶 {html.escape(course.level)}")
+        if meta:
+            lines.append(" · ".join(meta))
+
+        lines.append(
+            f'🔗 <a href="{html.escape(course.url, quote=True)}">Open Course</a>\n'
+        )
+
     return "\n".join(lines)
 
 
@@ -106,6 +146,20 @@ class CourseBot:
                 "anything. Set TUTORIALBAR=true, UDEMY_CLIENT_ID/SECRET, or "
                 "COUPON_FEEDS."
             )
+
+        # /search spans the polling providers above (so Udemy stays covered)
+        # plus the other platforms. A platform switched off in config, or one
+        # whose credentials are missing, is simply never added.
+        pages = config.search_catalogue_pages
+        self.search_providers: list[Provider] = list(self.providers)
+        if config.search_mit:
+            self.search_providers.append(MITProvider())
+        if config.search_coursera:
+            self.search_providers.append(CourseraProvider(pages=pages))
+        if config.search_edx:
+            self.search_providers.append(EdXProvider(pages=pages))
+        if config.search_freecodecamp:
+            self.search_providers.append(FreeCodeCampProvider())
 
     # ---------- commands ----------
 
@@ -169,10 +223,58 @@ class CourseBot:
             disable_web_page_preview=True,
         )
 
+    async def cmd_search(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+        """/search <query> - look across every configured platform."""
+        query = " ".join(ctx.args).strip()
+        if not query:
+            await update.message.reply_text(
+                "What should I look for?\n\n"
+                "Example: /search python\n"
+                f"I'll check {self._platform_names()}."
+            )
+            return
+
+        await ctx.bot.send_chat_action(
+            chat_id=update.effective_chat.id, action=ChatAction.TYPING
+        )
+
+        courses = await search_all_providers(
+            self.search_providers,
+            query,
+            limit_per_provider=self.config.max_per_cycle,
+            timeout=self.config.search_timeout,
+        )
+
+        if not courses:
+            await update.message.reply_text(
+                f"No courses found for “{query}”.\n"
+                "Try a broader term, or check /status to see which platforms "
+                "are switched on."
+            )
+            return
+
+        text = format_search_results(query, courses)
+        # Telegram hard-caps a message at 4096 characters; trim whole entries
+        # rather than cutting mid-course and breaking the HTML.
+        while len(text) > 4000 and len(courses) > 1:
+            courses = courses[:-1]
+            text = format_search_results(query, courses)
+
+        await update.message.reply_text(
+            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+        )
+
+    def _platform_names(self) -> str:
+        """Distinct platform labels currently taking part in /search."""
+        return ", ".join(
+            sorted({PROVIDER_LABELS.get(p.name, p.name) for p in self.search_providers})
+        )
+
     async def cmd_status(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         sources = ", ".join(p.name for p in self.providers) or "none configured"
         await update.message.reply_text(
             f"Sources: {sources}\n"
+            f"Search platforms: {self._platform_names() or 'none'}\n"
             f"Checking every {self.config.poll_interval // 60} min\n"
             f"Courses tracked: {self.store.seen_count():,}\n"
             f"Subscribers: {self.store.subscriber_count():,}"
@@ -276,6 +378,7 @@ class CourseBot:
         app.add_handler(CommandHandler("stop", self.cmd_stop))
         app.add_handler(CommandHandler("filter", self.cmd_filter))
         app.add_handler(CommandHandler("latest", self.cmd_latest))
+        app.add_handler(CommandHandler("search", self.cmd_search))
         app.add_handler(CommandHandler("status", self.cmd_status))
 
         app.job_queue.run_repeating(

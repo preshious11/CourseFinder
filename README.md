@@ -72,7 +72,8 @@ cap is announced on following polls rather than dropped.
 | `/filter python, design` | Only receive courses matching these keywords |
 | `/filter off` | Clear the filter |
 | `/latest` | Last 5 finds |
-| `/status` | Sources, interval, counts |
+| `/search python` | Search courses across every configured platform |
+| `/status` | Sources, search platforms, interval, counts |
 
 ## Design notes
 
@@ -148,3 +149,38 @@ If you're monetising, don't hand-build tracking URLs — Udemy routes affiliate
 traffic through Impact deep links, and a malformed link just loses the
 attribution. Generate them in the Impact dashboard and wrap `course.url` in
 `format_course()`.
+
+
+## Multi-platform search
+
+`/search <query>` fans out across every configured platform concurrently and
+merges the results, labelled by platform. The Udemy sources that drive the
+hourly broadcast take part too, so `/search` covers Udemy plus the rest.
+
+| Platform | How it is reached | Search quality |
+|---|---|---|
+| Udemy | the existing coupon providers | good (local match over the live coupon set) |
+| MIT OpenCourseWare / MITx | `api.learn.mit.edu` search API | best - real relevance ranking |
+| Coursera | public catalogue, paged | partial - see below |
+| edX | public course list, paged | partial - see below |
+| freeCodeCamp | published tutorial RSS | recent posts only |
+
+Coursera and edX publish readable catalogues but no usable search: Coursera's
+documented `q=search` finder answers *"finder 'search' not implemented"*, and
+edX's `search_term` is silently ignored (it returns the same result count for a
+real query, a nonsense query, and no query at all). So the bot scans a bounded
+window of their catalogues - `SEARCH_CATALOGUE_PAGES` x 100 entries - and
+matches locally. **Recall from those two is therefore partial**: raising the
+page count improves it at the cost of a slower first search.
+
+The catalogue crawl is cached for ten minutes, so the first search costs about
+twenty seconds and subsequent ones - including new queries - take about three.
+
+A provider that fails, times out, or is switched off is logged and skipped; the
+other platforms' results are still returned.
+
+Class Central, Khan Academy, FutureLearn, Pluralsight and LinkedIn Learning are
+**not** implemented: the first three publish no usable API (Khan Academy's old
+open API now answers `410 Gone`), and the last two are partner programmes whose
+credentials are not self-serve. Nothing is scraped around a login, paywall or
+bot protection to reach them.

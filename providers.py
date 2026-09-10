@@ -26,6 +26,7 @@ import html as html_mod
 import json
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 from typing import Iterable, Iterator
 
@@ -42,6 +43,17 @@ BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 )
+
+#: Internal provider id -> the platform name shown to users in search results.
+PROVIDER_LABELS = {
+    "tutorialbar": "Udemy",      # tutorialbar only ever links to udemy.com
+    "udemy-api": "Udemy",
+    "rss-coupons": "Udemy",      # ditto - the feeds are udemy coupon feeds
+    "coursera": "Coursera",
+    "edx": "edX",
+    "mit": "MIT OpenCourseWare",
+    "freecodecamp": "freeCodeCamp",
+}
 
 
 @dataclass
@@ -60,10 +72,28 @@ class Course:
     expires: str | None = None   # free-text, coupon feeds rarely agree on format
     tags: list[str] = field(default_factory=list)
 
+    # Added for multi-platform search. Every one is optional and defaults to
+    # empty, so the coupon providers, the SQLite store and the broadcast
+    # formatter all keep working untouched; a platform that does not expose a
+    # given field simply leaves it blank rather than failing the result.
+    price: str = ""              # "Free", "Free to audit", "Paid", ...
+    duration: str = ""           # free-text, platforms never agree on units
+    level: str = ""              # "Beginner", "Introductory", ...
+    image: str = ""
+
+    @property
+    def provider(self) -> str:
+        """Human-facing name of the platform this course came from.
+
+        `source` is the internal provider id and is what the store already
+        persists; this is just the display alias the search UI asks for.
+        """
+        return PROVIDER_LABELS.get(self.source, self.source)
+
     def search_blob(self) -> str:
         """Lowercased text used for keyword filtering."""
         return " ".join(
-            [self.title, self.headline, self.instructor, *self.tags]
+            [self.title, self.headline, self.instructor, self.level, *self.tags]
         ).lower()
 
 
@@ -77,6 +107,32 @@ def course_slug(url: str) -> str:
     return url.split("?")[0].rstrip("/").rsplit("/", 1)[-1].lower()
 
 
+def filter_courses(courses: list[Course], query: str, limit: int = 10) -> list[Course]:
+    """Keep the courses matching every whitespace-separated term in `query`.
+
+    Reuses Course.search_blob(), the same text the /filter subscription
+    keywords already match against, so search and filtering agree on what a
+    course "contains".
+    """
+    terms = [t for t in query.lower().split() if t]
+    if not terms:
+        return courses[:limit]
+
+    # A course whose *title* carries the query is a better answer than one that
+    # merely mentions it in the description - otherwise a "Rust" course whose
+    # blurb name-drops Python outranks actual Python courses.
+    scored = []
+    for course in courses:
+        if not all(t in course.search_blob() for t in terms):
+            continue
+        title = course.title.lower()
+        scored.append((sum(1 for t in terms if t in title), course))
+
+    # Stable sort, so within a relevance tier the provider's own order wins.
+    scored.sort(key=lambda pair: -pair[0])
+    return [course for _, course in scored[:limit]]
+
+
 class Provider:
     name = "provider"
 
@@ -85,6 +141,35 @@ class Provider:
 
     async def fetch(self) -> list[Course]:  # pragma: no cover - interface
         raise NotImplementedError
+
+    #: How long the search path may reuse a fetch() result, in seconds.
+    #: Only /search reads this cache - poll_job always calls fetch() directly
+    #: and so always sees fresh data.
+    SEARCH_CACHE_TTL = 600
+
+    _cache: tuple[float, list[Course]] | None = None
+
+    async def search(self, query: str, limit: int = 10) -> list[Course]:
+        """Find courses matching `query`.
+
+        The default implementation pulls what the provider already offers via
+        fetch() and filters locally. That is exactly right for the coupon
+        providers, which have no search endpoint - so they gain /search
+        without being modified at all. Providers backed by a real search API
+        override this.
+
+        The fetch is cached briefly because these providers page over a whole
+        site: without it, every /search would re-crawl fourteen pages and take
+        twenty seconds. The cache is per-provider-instance and short-lived, so
+        results stay current while back-to-back searches are quick.
+        """
+        now = time.monotonic()
+        if self._cache and now - self._cache[0] < self.SEARCH_CACHE_TTL:
+            courses = self._cache[1]
+        else:
+            courses = await self.fetch()
+            self._cache = (now, courses)
+        return filter_courses(courses, query, limit)
 
     async def _get(self, client: httpx.AsyncClient, url: str):
         """GET a URL, retrying once when the server asks us to back off."""
