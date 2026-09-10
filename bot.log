@@ -36,3 +36,640 @@
 2026-09-09 11:53:43,313 INFO     bot.telegram_bot: Sent 'Technology for Non Technology Decision M' to 1 subscribers
 2026-09-09 11:53:43,683 INFO     bot.telegram_bot: Sent 'SMART Goals Parenting' to 1 subscribers
 2026-09-09 11:53:43,695 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 11:53:31 UTC)" executed successfully
+2026-09-09 12:46:42,987 ERROR    telegram.ext.Application: No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 293, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 108, in do_action
+    return action_cb_task.result()
+           ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 376, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 658, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4605, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 691, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 362, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 720, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 202, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 334, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 317, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+2026-09-09 12:46:44,000 ERROR    telegram.ext.Application: No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 293, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 108, in do_action
+    return action_cb_task.result()
+           ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 376, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 658, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4605, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 691, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 362, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 720, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 202, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 334, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 317, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+2026-09-09 12:46:45,511 ERROR    telegram.ext.Application: No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 293, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 108, in do_action
+    return action_cb_task.result()
+           ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 376, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 658, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4605, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 691, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 362, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 720, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 202, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 334, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 317, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+2026-09-09 13:07:23,700 WARNING  apscheduler.executors.default: Run time of job "prune_job (trigger: interval[1 day, 0:00:00], next run at: 2026-09-10 11:53:16 UTC)" was missed by 0:14:06.936626
+2026-09-09 13:07:23,700 WARNING  apscheduler.executors.default: Run time of job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 12:53:31 UTC)" was missed by 0:13:51.938184
+2026-09-09 13:07:23,737 ERROR    telegram.ext.Application: No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 293, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 108, in do_action
+    return action_cb_task.result()
+           ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 376, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 658, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4605, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 691, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 362, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 720, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 202, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 334, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\VICTUS\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 317, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+2026-09-09 13:53:31,782 INFO     apscheduler.executors.default: Running job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 13:53:31 UTC)" (scheduled at 2026-09-09 12:53:31.762567+00:00)
+2026-09-09 13:53:33,380 INFO     bot.providers: Feed https://www.reddit.com/r/udemyfreebies/.rss: 13 entries, 2 with a Udemy course link
+2026-09-09 13:53:34,798 INFO     bot.providers: tutorialbar: 93 courses from 14/14 pages (11 expired skipped)
+2026-09-09 13:53:38,216 INFO     bot.providers: Feed https://freebiesglobal.com/feed: 15 entries, 1 with a Udemy course link
+2026-09-09 13:53:38,217 INFO     bot.providers: rss-coupons: 3 courses
+2026-09-09 13:53:38,222 INFO     bot.telegram_bot: Found 60 new; announcing 10 (50 queued for later)
+2026-09-09 13:53:39,802 INFO     bot.telegram_bot: Sent 'Microsoft Excel Data Analysis with Formu' to 3 subscribers
+2026-09-09 13:53:40,814 INFO     bot.telegram_bot: Sent 'AWS Certified Security Specialty SCS-C03' to 3 subscribers
+2026-09-09 13:53:42,392 INFO     bot.telegram_bot: Sent 'Capcut for Social Media Video Editing | ' to 3 subscribers
+2026-09-09 13:53:43,497 INFO     bot.telegram_bot: Sent 'Become an Expert in Excel & Google Sheet' to 3 subscribers
+2026-09-09 13:53:44,631 INFO     bot.telegram_bot: Sent 'Mastering HTTP: Web Communication, APIs ' to 3 subscribers
+2026-09-09 13:53:45,877 INFO     bot.telegram_bot: Sent 'How ChatGPT and LLMs Really Work For Non' to 3 subscribers
+2026-09-09 13:53:46,998 INFO     bot.telegram_bot: Sent 'Securing VoIP Systems: Encryption, Firew' to 3 subscribers
+2026-09-09 13:53:48,085 INFO     bot.telegram_bot: Sent 'Full Stack Python Developer Bootcamp: Fo' to 3 subscribers
+2026-09-09 13:53:49,226 INFO     bot.telegram_bot: Sent 'Pytest Practice Test 2026: Python Testin' to 3 subscribers
+2026-09-09 13:53:50,293 INFO     bot.telegram_bot: Sent 'Complete Guide to Python Data Analysis w' to 3 subscribers
+2026-09-09 13:53:50,304 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 13:53:31 UTC)" executed successfully
+2026-09-09 14:53:31,770 INFO     apscheduler.executors.default: Running job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 14:53:31 UTC)" (scheduled at 2026-09-09 13:53:31.762567+00:00)
+2026-09-09 14:53:33,919 ERROR    bot.providers: rss-coupons: https://www.reddit.com/r/udemyfreebies/.rss returned HTTP 403
+2026-09-09 14:53:35,964 INFO     bot.providers: tutorialbar: 93 courses from 14/14 pages (11 expired skipped)
+2026-09-09 14:53:38,978 INFO     bot.providers: Feed https://freebiesglobal.com/feed: 15 entries, 1 with a Udemy course link
+2026-09-09 14:53:38,979 INFO     bot.providers: rss-coupons: 1 courses
+2026-09-09 14:53:38,982 INFO     bot.telegram_bot: Found 50 new; announcing 10 (40 queued for later)
+2026-09-09 14:53:40,596 INFO     bot.telegram_bot: Sent 'C++ Programming Made Easy: From Basics t' to 3 subscribers
+2026-09-09 14:53:41,647 INFO     bot.telegram_bot: Sent 'Practice Tests For Unity Certified Assoc' to 3 subscribers
+2026-09-09 14:53:42,695 INFO     bot.telegram_bot: Sent 'Python Web Developer Masterclass - Build' to 3 subscribers
+2026-09-09 14:53:43,784 INFO     bot.telegram_bot: Sent 'Practice Test For CQIA :  Quality Improv' to 3 subscribers
+2026-09-09 14:53:44,807 INFO     bot.telegram_bot: Sent 'APICS CSCP Practice Tests: Supply Chain ' to 3 subscribers
+2026-09-09 14:53:45,862 INFO     bot.telegram_bot: Sent 'Deepseek AI: Automate Tasks and Write Co' to 3 subscribers
+2026-09-09 14:53:46,988 INFO     bot.telegram_bot: Sent 'The Complete Claude Code Masterclass [20' to 3 subscribers
+2026-09-09 14:53:48,046 INFO     bot.telegram_bot: Sent 'Senior Executive Program: AI, Robotics, ' to 3 subscribers
+2026-09-09 14:53:49,104 INFO     bot.telegram_bot: Sent 'Working Capital Management: Liquidity & ' to 3 subscribers
+2026-09-09 14:53:50,194 INFO     bot.telegram_bot: Sent 'Quantitative Finance & Financial Enginee' to 3 subscribers
+2026-09-09 14:53:50,205 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 14:53:31 UTC)" executed successfully
+2026-09-09 15:53:31,783 INFO     apscheduler.executors.default: Running job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 15:53:31 UTC)" (scheduled at 2026-09-09 14:53:31.762567+00:00)
+2026-09-09 15:53:33,413 INFO     bot.providers: Feed https://www.reddit.com/r/udemyfreebies/.rss: 13 entries, 2 with a Udemy course link
+2026-09-09 15:53:35,478 INFO     bot.providers: tutorialbar: 97 courses from 14/14 pages (9 expired skipped)
+2026-09-09 15:53:38,448 INFO     bot.providers: Feed https://freebiesglobal.com/feed: 15 entries, 1 with a Udemy course link
+2026-09-09 15:53:38,449 INFO     bot.providers: rss-coupons: 3 courses
+2026-09-09 15:53:38,454 INFO     bot.telegram_bot: Found 51 new; announcing 10 (41 queued for later)
+2026-09-09 15:53:40,053 INFO     bot.telegram_bot: Sent 'Cómo Crear un Blog con Inteligencia Arti' to 3 subscribers
+2026-09-09 15:53:41,291 INFO     bot.telegram_bot: Sent 'Your WORDS, Powerful Tools' to 3 subscribers
+2026-09-09 15:53:42,442 INFO     bot.telegram_bot: Sent 'AI Vector Database Bootcamp: RAG, LLM, N' to 3 subscribers
+2026-09-09 15:53:43,860 INFO     bot.telegram_bot: Sent 'Elementor Kits: Crea una Página Web con ' to 3 subscribers
+2026-09-09 15:53:44,939 INFO     bot.telegram_bot: Sent 'Máster en Diseño Web con Inteligencia Ar' to 3 subscribers
+2026-09-09 15:53:46,052 INFO     bot.telegram_bot: Sent 'Elementor IA: Crea una Web con WordPress' to 3 subscribers
+2026-09-09 15:53:47,357 INFO     bot.telegram_bot: Sent 'Cómo Crear una Academia Online con WordP' to 3 subscribers
+2026-09-09 15:53:48,730 INFO     bot.telegram_bot: Sent 'Cómo Crear una Tienda Online con Intelig' to 3 subscribers
+2026-09-09 15:53:49,913 INFO     bot.telegram_bot: Sent 'Máster en Comercio Electrónico con WordP' to 3 subscribers
+2026-09-09 15:53:51,016 INFO     bot.telegram_bot: Sent 'SiteGround Migrator: Migra tu Web con Wo' to 3 subscribers
+2026-09-09 15:53:51,028 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-09 15:53:31 UTC)" executed successfully
+2026-09-10 09:05:10,551 INFO     apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-09-10 09:05:10,552 INFO     apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-09-10 09:05:10,552 INFO     root: Starting bot | sources=['tutorialbar', 'rss-coupons'] | interval=3600s
+2026-09-10 09:05:13,380 INFO     apscheduler.scheduler: Added job "poll_job" to job store "default"
+2026-09-10 09:05:13,380 INFO     apscheduler.scheduler: Added job "prune_job" to job store "default"
+2026-09-10 09:05:13,380 INFO     apscheduler.scheduler: Scheduler started
+2026-09-10 09:05:13,381 INFO     telegram.ext.Application: Application started
+2026-09-10 09:05:25,551 INFO     apscheduler.executors.default: Running job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-10 09:05:25 UTC)" (scheduled at 2026-09-10 08:05:25.548966+00:00)
+2026-09-10 09:05:26,455 ERROR    bot.providers: rss-coupons: https://www.reddit.com/r/udemyfreebies/.rss returned HTTP 403
+2026-09-10 09:05:29,957 INFO     bot.providers: tutorialbar: 96 courses from 14/14 pages (7 expired skipped)
+2026-09-10 09:05:31,653 INFO     bot.providers: Feed https://freebiesglobal.com/feed: 15 entries, 1 with a Udemy course link
+2026-09-10 09:05:31,653 INFO     bot.providers: rss-coupons: 1 courses
+2026-09-10 09:05:31,656 INFO     bot.telegram_bot: Found 64 new; announcing 10 (54 queued for later)
+2026-09-10 09:05:33,443 INFO     bot.telegram_bot: Sent 'The Complete Microsoft Excel Course: Beg' to 3 subscribers
+2026-09-10 09:05:34,567 INFO     bot.telegram_bot: Sent 'PHP with MySQL: Build a Complete Job Por' to 3 subscribers
+2026-09-10 09:05:35,685 INFO     bot.telegram_bot: Sent 'Mastering Excel Data Visualization with ' to 3 subscribers
+2026-09-10 09:05:36,879 INFO     bot.telegram_bot: Sent 'React.js Complete Guide: Build Interacti' to 3 subscribers
+2026-09-10 09:05:38,030 INFO     bot.telegram_bot: Sent 'Supply Chain Management: SCM' to 3 subscribers
+2026-09-10 09:05:39,089 INFO     bot.telegram_bot: Sent 'Master Full Stack Web Development With G' to 3 subscribers
+2026-09-10 09:05:40,092 INFO     bot.telegram_bot: Sent 'Advanced MS Word Excel PowerPoint Course' to 3 subscribers
+2026-09-10 09:05:41,145 INFO     bot.telegram_bot: Sent 'Master Data Analysis with Python - From ' to 3 subscribers
+2026-09-10 09:05:42,209 INFO     bot.telegram_bot: Sent 'Practice Test for ISO/IEC 42001 AI Manag' to 3 subscribers
+2026-09-10 09:05:43,315 INFO     bot.telegram_bot: Sent 'Practice Tests  For Claude Certified Dev' to 3 subscribers
+2026-09-10 09:05:43,327 INFO     apscheduler.executors.default: Job "poll_job (trigger: interval[1:00:00], next run at: 2026-09-10 09:05:25 UTC)" executed successfully
