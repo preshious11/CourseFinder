@@ -6,18 +6,23 @@ hear about topics they care about.
 
 ```
 bot/               package
-  main.py          entry point (run with python -m bot)
+  __main__.py      `python -m bot` entry point (must live inside the package)
+  main.py          startup: logging, Config, CourseBot, run_polling
   config.py        env-var config
   providers.py     where courses come from
   store.py         SQLite: subscribers + dedupe
   telegram_bot.py  commands, inline mode, polling job, broadcast
   search_providers.py  multi-platform search providers
-__main__.py        python -m bot support
-setup.py           pip install -e .
+setup.py           pip install -e .  (installs the `udemy-free-bot` script)
+railway.json       Railway build/start config
 Dockerfile         container build
 docker-compose.yml one-command deploy
 tests/             unit tests
 ```
+
+> `python -m bot` resolves to `bot/__main__.py`, so that file has to be inside the
+> package. A `__main__.py` at the project root is never picked up by `-m`; if the
+> start command reports `No module named bot.__main__`, that file is missing.
 
 ## Two kinds of "free"
 
@@ -130,15 +135,37 @@ way to get your IP blocked.
 
 ## Deploying
 
+### Railway
+
+`railway.json` pins the build to the `Dockerfile` and the start command to
+`python -m bot`, which runs the `bot` package's `__main__.py`. If you set a
+Start Command in the service settings instead, make it exactly `python -m bot`
+(or `python -m bot.main`); `python -m bot/` and `python __main__.py` do not
+resolve and exit with `No module named bot.__main__`, which Railway then retries
+in a restart loop.
+
+Set `TELEGRAM_BOT_TOKEN` as a service variable — the bot exits immediately if it
+is missing (`TELEGRAM_BOT_TOKEN is not set` in the logs).
+
+Check the volume mount path too. A volume mounted at `/app` shadows the freshly
+built code with whatever was in the volume from the first deploy, so code fixes
+never reach the container — the bot would keep failing with the old error no
+matter how many times you redeploy. Mount the volume somewhere else (for example
+`/data`) and set `DB_PATH=/data/bot.db` so the SQLite file is what persists and
+the code keeps coming from the image. A service can only have one volume, so
+replace the `/app` one rather than adding a second.
+
 ### With Docker Compose
 
 ```bash
 docker-compose up -d
 ```
 
-The `bot.db` volume is mounted persistently so you keep your subscribers on
-every deploy. Only run one instance — two processes long-polling the same token
-will fight over updates and duplicate every message.
+The `bot.db` file lives on the `bot-data` volume (`DB_PATH=/data/bot.db`) so you
+keep your subscribers on every deploy, while the code keeps coming from the
+image — mounting a volume at `/app` would pin you to the first deploy's source.
+Only run one instance; two processes long-polling the same token will fight over
+updates and duplicate every message.
 
 ### Systemd
 

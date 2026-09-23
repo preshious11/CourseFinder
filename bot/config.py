@@ -16,10 +16,11 @@ load_dotenv()
 def _resolve(path: str) -> str:
     """Anchor a relative path to the package, not the working directory.
 
-    The bot is documented to run as `python -m bot.main` from the parent
-    directory, but it also gets run from inside the package. With a bare
-    relative DB_PATH those two produce *different* databases, so the bot
-    quietly loses its subscribers depending on where it was launched from.
+    The bot is documented to run as `python -m bot` (equivalently
+    `python -m bot.main`) from the parent directory, but it also gets run from
+    inside the package. With a bare relative DB_PATH those two produce
+    *different* databases, so the bot quietly loses its subscribers depending
+    on where it was launched from.
     """
     candidate = Path(path).expanduser()
     if candidate.is_absolute():

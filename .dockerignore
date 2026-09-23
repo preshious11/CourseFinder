@@ -11,3 +11,12 @@ tests/
 *.egg-info/
 dist/
 build/
+
+# runtime state / local deploy config - never shipped in the image
+bot.db
+bot.log
+*.db
+*.log
+.env
+railway.json
+docker-compose.yml

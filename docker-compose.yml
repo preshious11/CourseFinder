@@ -1,12 +1,15 @@
-version: "3.8"
-
 services:
   bot:
     build: .
     env_file:
       - .env
+    # Keep the SQLite file on the volume but leave the code in the image: mounting
+    # the volume at /app would mask every rebuilt image with the first deploy's
+    # source tree.
+    environment:
+      DB_PATH: /data/bot.db
     volumes:
-      - bot-data:/app
+      - bot-data:/data
     restart: always
     logging:
       driver: json-file
