@@ -1,4 +1,5 @@
 from providers import Course, course_slug, filter_courses
+from telegram_bot import matches_filter
 
 
 class TestCourseSlug:
@@ -89,3 +90,26 @@ class TestCourse:
         c = Course(id="1", title="PYTHON", url="https://example.com", source="test")
         blob = c.search_blob()
         assert "python" in blob.split()
+
+
+class TestMatchesFilter:
+    def test_no_keywords_gets_everything(self):
+        c = Course(id="1", title="Python Basics", url="https://example.com", source="test")
+        assert matches_filter(c, "") is True
+        assert matches_filter(c, None) is True
+
+    def test_keyword_match(self):
+        c = Course(id="1", title="Python Basics", url="https://example.com", source="test")
+        assert matches_filter(c, "python") is True
+
+    def test_no_keyword_match(self):
+        c = Course(id="1", title="Rust Basics", url="https://example.com", source="test")
+        assert matches_filter(c, "python") is False
+
+    def test_or_match_multiple_keywords(self):
+        c = Course(id="1", title="Python Basics", url="https://example.com", source="test")
+        assert matches_filter(c, "python,rust") is True
+
+    def test_case_insensitive(self):
+        c = Course(id="1", title="PYTHON Basics", url="https://example.com", source="test")
+        assert matches_filter(c, "python") is True
