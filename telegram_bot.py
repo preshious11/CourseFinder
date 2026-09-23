@@ -117,6 +117,19 @@ def matches_filter(course: Course, keywords: str) -> bool:
     return any(kw.strip() in blob for kw in keywords.split(",") if kw.strip())
 
 
+def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Global error handler: log it, don't crash the polling loop."""
+    log.error("Unhandled error: %s", context.error, exc_info=context.error)
+    if isinstance(update, Update) and update.effective_message:
+        try:
+            update.effective_message.reply_text(
+                "Something went wrong. Try again shortly.",
+                parse_mode=ParseMode.HTML,
+            )
+        except TelegramError:
+            pass
+
+
 class CourseBot:
     def __init__(self, config: Config) -> None:
         self.config = config
@@ -163,6 +176,9 @@ class CourseBot:
 
     # ---------- commands ----------
 
+    def _is_admin(self, chat_id: int) -> bool:
+        return self.config.admin_chat_id is not None and chat_id == self.config.admin_chat_id
+
     async def cmd_start(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         is_new = self.store.subscribe(update.effective_chat.id)
         text = WELCOME if is_new else "You're already subscribed. " + WELCOME
@@ -180,6 +196,9 @@ class CourseBot:
 
     async def cmd_filter(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id = update.effective_chat.id
+        if not self._is_admin(chat_id):
+            await update.message.reply_text("Command restricted to admins.")
+            return
         if not self.store.get_subscriber(chat_id):
             await update.message.reply_text("Send /start first.")
             return
@@ -204,6 +223,9 @@ class CourseBot:
         await update.message.reply_text(f"Filter set: {arg}")
 
     async def cmd_latest(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self._is_admin(update.effective_chat.id):
+            await update.message.reply_text("Command restricted to admins.")
+            return
         rows = self.store.recent(limit=5)
         if not rows:
             await update.message.reply_text(
@@ -225,6 +247,9 @@ class CourseBot:
 
     async def cmd_search(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         """/search <query> - look across every configured platform."""
+        if not self._is_admin(update.effective_chat.id):
+            await update.message.reply_text("Command restricted to admins.")
+            return
         query = " ".join(ctx.args).strip()
         if not query:
             await update.message.reply_text(
@@ -380,6 +405,7 @@ class CourseBot:
         app.add_handler(CommandHandler("latest", self.cmd_latest))
         app.add_handler(CommandHandler("search", self.cmd_search))
         app.add_handler(CommandHandler("status", self.cmd_status))
+        app.add_error_handler(handle_error)
 
         app.job_queue.run_repeating(
             self.poll_job, interval=self.config.poll_interval, first=15

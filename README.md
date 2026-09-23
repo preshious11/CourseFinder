@@ -6,10 +6,10 @@ topics they care about.
 
 ```
 main.py              entry point
-bot/config.py        env-var config
-bot/providers.py     where courses come from
-bot/store.py         SQLite: subscribers + dedupe
-bot/telegram_bot.py  commands, polling job, broadcast
+config.py            env-var config
+providers.py         where courses come from
+store.py             SQLite: subscribers + dedupe
+telegram_bot.py      commands, polling job, broadcast
 ```
 
 ## Two kinds of "free"
@@ -49,8 +49,7 @@ protection will block you anyway, so it isn't implemented here.
 ```bash
 pip install -r requirements.txt
 cp .env.example .env      # then fill it in
-cd ..
-python -m bot.main
+python main.py
 ```
 
 You need at minimum a `TELEGRAM_BOT_TOKEN` from [@BotFather](https://t.me/BotFather).
@@ -69,10 +68,10 @@ cap is announced on following polls rather than dropped.
 |---|---|
 | `/start` | Subscribe |
 | `/stop` | Unsubscribe |
-| `/filter python, design` | Only receive courses matching these keywords |
-| `/filter off` | Clear the filter |
-| `/latest` | Last 5 finds |
-| `/search python` | Search courses across every configured platform |
+| `/filter python, design` | Only receive courses matching these keywords (admin only) |
+| `/filter off` | Clear the filter (admin only) |
+| `/latest` | Last 5 finds (admin only) |
+| `/search python` | Search courses across every configured platform (admin only) |
 | `/status` | Sources, search platforms, interval, counts |
 
 ## Design notes

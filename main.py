@@ -1,4 +1,4 @@
-"""Entry point. Run with: python -m bot.main from the parent directory."""
+"""Entry point. Run with: python main.py from the project root."""
 
 import asyncio
 import logging

@@ -66,7 +66,7 @@ class Config:
     admin_chat_id: int | None
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls) -> Config:
         token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
         if not token:
             raise SystemExit(

@@ -27,8 +27,8 @@ import json
 import logging
 import re
 import time
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
-from typing import Iterable, Iterator
 
 import httpx
 

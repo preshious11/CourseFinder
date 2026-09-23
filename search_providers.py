@@ -36,6 +36,7 @@ import asyncio
 import html as html_mod
 import logging
 import re
+import time
 
 import httpx
 
@@ -143,7 +144,7 @@ class PagedCatalogueProvider(SearchProvider):
         raise NotImplementedError
 
     async def _load_catalogue(self) -> list[Course]:
-        now = asyncio.get_event_loop().time()
+        now = time.monotonic()
         if self._catalogue and now - self._catalogue[0] < self.CACHE_TTL:
             return self._catalogue[1]
         courses = await self._crawl()
@@ -428,7 +429,7 @@ async def search_all_providers(
             return await asyncio.wait_for(
                 provider.search(query, limit_per_provider), timeout=timeout
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             log.warning("%s: search timed out after %.0fs", provider.name, timeout)
             return []
         except Exception:  # one bad provider must not sink the search
