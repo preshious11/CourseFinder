@@ -1,10 +1,10 @@
-"""Entry point. Run with: python main.py from the project root."""
+"""Entry point. Run with: python -m bot from the project root."""
 
 import asyncio
 import logging
 
-from config import Config
-from telegram_bot import CourseBot
+from bot.config import Config
+from bot.telegram_bot import CourseBot
 
 logging.basicConfig(
     level=logging.INFO,

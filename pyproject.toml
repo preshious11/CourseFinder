@@ -1,14 +1,14 @@
 [tool.ruff]
-target-version = "py314"
+target-version = "py312"
 line-length = 100
-exclude = [".kilo", "__pycache__", "*.pyc"]
+exclude = [".kilo", "__pycache__", "*.pyc", ".github"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP"]
 ignore = ["E501", "N802"]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.12"
 warn_return_any = true
 strict_optional = true
 disallow_untyped_defs = false
@@ -21,3 +21,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+[tool.setuptools]
+packages = ["bot"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"

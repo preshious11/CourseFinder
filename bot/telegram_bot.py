@@ -1,22 +1,24 @@
-"""Telegram front end: commands, the polling job, and the broadcast loop."""
+"""Telegram front end: commands, inline mode, polling, and broadcast."""
 
 from __future__ import annotations
 
 import asyncio
 import html
 import logging
+import time
 
-from telegram import Update
+from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
 from telegram.constants import ChatAction, ParseMode
 from telegram.error import Forbidden, RetryAfter, TelegramError
 from telegram.ext import (
     Application,
     CommandHandler,
     ContextTypes,
+    InlineQueryHandler,
 )
 
-from config import Config
-from providers import (
+from bot.config import Config
+from bot.providers import (
     PROVIDER_LABELS,
     Course,
     Provider,
@@ -24,26 +26,30 @@ from providers import (
     TutorialBarProvider,
     UdemyAffiliateProvider,
 )
-from search_providers import (
+from bot.search_providers import (
     CourseraProvider,
     EdXProvider,
     FreeCodeCampProvider,
     MITProvider,
     search_all_providers,
 )
-from store import Store
+from bot.store import Store
 
 log = logging.getLogger(__name__)
 
-# Telegram allows ~30 messages/second to different chats. Stay well under it.
 SEND_DELAY = 0.06
+
+MAX_RETRIES = 3
+INITIAL_BACKOFF = 1.0
 
 WELCOME = (
     "👋 <b>Free Udemy course alerts</b>\n\n"
     "You're subscribed. I'll message you whenever I find a new free course.\n\n"
     "<b>Commands</b>\n"
     "/search python - search courses across every platform\n"
+    "/search python coursera - search a specific platform\n"
     "/latest - the most recent finds\n"
+    "/latest python - filter recent by keyword\n"
     "/filter python, design - only get courses matching these keywords\n"
     "/filter off - remove your filter (get everything)\n"
     "/status - what I'm tracking\n"
@@ -87,7 +93,6 @@ def format_search_results(query: str, courses: list[Course]) -> str:
         lines.append(f"<b>{index}. {html.escape(course.title)}</b>")
         lines.append(f"🏫 {html.escape(course.provider)}")
 
-        # Only show the fields this platform actually supplied.
         meta = []
         if course.instructor:
             meta.append(f"👤 {html.escape(course.instructor)}")
@@ -160,9 +165,6 @@ class CourseBot:
                 "COUPON_FEEDS."
             )
 
-        # /search spans the polling providers above (so Udemy stays covered)
-        # plus the other platforms. A platform switched off in config, or one
-        # whose credentials are missing, is simply never added.
         pages = config.search_catalogue_pages
         self.search_providers: list[Provider] = list(self.providers)
         if config.search_mit:
@@ -174,16 +176,47 @@ class CourseBot:
         if config.search_freecodecamp:
             self.search_providers.append(FreeCodeCampProvider())
 
-    # ---------- commands ----------
-
     def _is_admin(self, chat_id: int) -> bool:
         return self.config.admin_chat_id is not None and chat_id == self.config.admin_chat_id
+
+    def _resolve_platform(self, platform: str) -> str:
+        """Normalise a user-supplied platform name to a provider name."""
+        platform = platform.lower().strip()
+        aliases = {
+            "coursera": "coursera", "course": "coursera",
+            "edx": "edx", "edX": "edx",
+            "mit": "mit", "openlearning": "mit",
+            "freecodecamp": "freecodecamp", "freecodecamp.org": "freecodecamp",
+            "tutorialbar": "tutorialbar",
+            "udemy": "udemy-api",
+        }
+        return aliases.get(platform, platform)
+
+    def _filter_by_platform(self, courses: list[Course], platform: str) -> list[Course]:
+        """Return only courses from a specific platform."""
+        target = self._resolve_platform(platform)
+        return [c for c in courses if c.source == target or c.provider.lower() == target]
 
     async def cmd_start(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         is_new = self.store.subscribe(update.effective_chat.id)
         text = WELCOME if is_new else "You're already subscribed. " + WELCOME
         await update.message.reply_text(
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+        )
+
+    async def cmd_help(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+        await update.message.reply_text(
+            "Commands:\n"
+            "/start - Subscribe\n"
+            "/stop - Unsubscribe\n"
+            "/filter keywords - Set keyword filter\n"
+            "/filter off - Remove filter\n"
+            "/search query [platform] - Search courses\n"
+            "/latest [keyword] - Most recent finds\n"
+            "/status - Bot status\n"
+            "Type /filter off to receive all courses.\n"
+            "You can filter by platform too: /search python coursera",
+            parse_mode=ParseMode.HTML,
         )
 
     async def cmd_stop(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
@@ -227,8 +260,21 @@ class CourseBot:
             )
             return
 
+        args = ctx.args
+        platform = None
+        if args:
+            platform = args[-1] if not args[0].lower().startswith("/") else None
+            if platform and self._resolve_platform(platform) in {
+                p.name for p in self.search_providers
+            } | {p.source for p in self.providers}:
+                pass
+            else:
+                platform = None
+
         lines = ["<b>Most recent finds</b>\n"]
         for row in rows:
+            if platform:
+                continue
             lines.append(
                 f'• <a href="{html.escape(row["url"], quote=True)}">'
                 f'{html.escape(row["title"])}</a>'
@@ -240,16 +286,35 @@ class CourseBot:
         )
 
     async def cmd_search(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
-        """/search <query> - look across every configured platform."""
-        query = " ".join(ctx.args).strip()
-        if not query:
+        """/search <query> [platform] - look across configured platforms."""
+        args = ctx.args
+        if not args:
             await update.message.reply_text(
                 "What should I look for?\n\n"
                 "Example: /search python\n"
+                "By platform: /search python coursera\n"
                 f"I'll check {self._platform_names()}."
             )
             return
 
+        platform = None
+        query_parts = []
+        for arg in args:
+            resolved = self._resolve_platform(arg)
+            if resolved in {p.name for p in self.search_providers} | {p.source for p in self.providers}:
+                platform = resolved
+            else:
+                query_parts.append(arg)
+
+        if not query_parts:
+            await update.message.reply_text(
+                "What should I search for?\n\n"
+                "Example: /search python\n"
+                "By platform: /search python coursera"
+            )
+            return
+
+        query = " ".join(query_parts).strip()
         await ctx.bot.send_chat_action(
             chat_id=update.effective_chat.id, action=ChatAction.TYPING
         )
@@ -261,29 +326,25 @@ class CourseBot:
             timeout=self.config.search_timeout,
         )
 
+        if platform:
+            courses = self._filter_by_platform(courses, platform)
+
         if not courses:
+            plat = f" on {PROVIDER_LABELS.get(platform, platform)}" if platform else ""
             await update.message.reply_text(
-                f"No courses found for “{query}”.\n"
+                f"No courses found{plat} for “{query}”.\n"
                 "Try a broader term, or check /status to see which platforms "
                 "are switched on."
             )
             return
 
         text = format_search_results(query, courses)
-        # Telegram hard-caps a message at 4096 characters; trim whole entries
-        # rather than cutting mid-course and breaking the HTML.
         while len(text) > 4000 and len(courses) > 1:
             courses = courses[:-1]
             text = format_search_results(query, courses)
 
         await update.message.reply_text(
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-        )
-
-    def _platform_names(self) -> str:
-        """Distinct platform labels currently taking part in /search."""
-        return ", ".join(
-            sorted({PROVIDER_LABELS.get(p.name, p.name) for p in self.search_providers})
         )
 
     async def cmd_status(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
@@ -295,6 +356,42 @@ class CourseBot:
             f"Courses tracked: {self.store.seen_count():,}\n"
             f"Subscribers: {self.store.subscriber_count():,}"
         )
+
+    async def cmd_inline(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle inline queries: type @bot_name query to search."""
+        query = ctx.args[0] if ctx.args else ""
+        if not query:
+            await ctx.answer_inline_query([])
+            return
+
+        courses = await search_all_providers(
+            self.search_providers,
+            query,
+            limit_per_provider=3,
+            timeout=self.config.search_timeout,
+        )
+
+        results = []
+        for course in courses[:5]:
+            title = course.title[:50]
+            description = (
+                f"{course.provider} · {html.escape(course.instructor)}"
+                if course.instructor
+                else course.provider
+            )
+            text = format_course(course)
+            results.append(
+                InlineQueryResultArticle(
+                    id=course.id,
+                    title=title,
+                    input_message_content=InputTextMessageContent(
+                        message_text=text, parse_mode=ParseMode.HTML
+                    ),
+                    description=description[:50],
+                )
+            )
+
+        await ctx.answer_inline_query(results, cache_time=60)
 
     # ---------- polling + broadcast ----------
 
@@ -322,22 +419,15 @@ class CourseBot:
             log.info("Poll complete: nothing new (%d checked)", len(courses))
             return
 
-        # First ever poll: the whole catalogue looks new, and nobody wants
-        # ninety messages as a greeting. Record it as the baseline and start
-        # announcing from the next genuinely new course.
         if self.store.seen_count() == 0:
             self.store.mark_seen(new)
             log.info("Cold start: baselined %d courses without announcing", len(new))
             return
 
-        # Only mark what we actually announce. Anything over the per-cycle cap
-        # stays unseen and goes out next cycle instead of being dropped.
         to_send = new[: self.config.max_per_cycle]
         log.info(
             "Found %d new; announcing %d (%d queued for later)",
-            len(new),
-            len(to_send),
-            len(new) - len(to_send),
+            len(new), len(to_send), len(new) - len(to_send),
         )
 
         for course in to_send:
@@ -345,6 +435,7 @@ class CourseBot:
         self.store.mark_seen(to_send)
 
     async def broadcast(self, ctx: ContextTypes.DEFAULT_TYPE, course: Course) -> None:
+        """Send a course to all matching subscribers with exponential backoff."""
         text = format_course(course)
         sent = 0
 
@@ -353,27 +444,40 @@ class CourseBot:
                 continue
 
             chat_id = row["chat_id"]
-            try:
-                await ctx.bot.send_message(
-                    chat_id=chat_id, text=text, parse_mode=ParseMode.HTML
-                )
-                sent += 1
-            except Forbidden:
-                # User blocked the bot or deleted the chat - clean them up.
-                log.info("Removing blocked subscriber %s", chat_id)
-                self.store.unsubscribe(chat_id)
-            except RetryAfter as exc:
-                log.warning("Rate limited, sleeping %.1fs", exc.retry_after)
-                await asyncio.sleep(exc.retry_after + 1)
+            for attempt in range(1, MAX_RETRIES + 1):
                 try:
                     await ctx.bot.send_message(
                         chat_id=chat_id, text=text, parse_mode=ParseMode.HTML
                     )
                     sent += 1
-                except TelegramError as retry_exc:
-                    log.error("Send to %s failed after retry: %s", chat_id, retry_exc)
-            except TelegramError as exc:
-                log.error("Send to %s failed: %s", chat_id, exc)
+                    break
+                except Forbidden:
+                    log.info("Removing blocked subscriber %s", chat_id)
+                    self.store.unsubscribe(chat_id)
+                    break
+                except RetryAfter as exc:
+                    log.warning("Rate limited, sleeping %.1fs", exc.retry_after)
+                    time.sleep(exc.retry_after + 1)
+                    try:
+                        await ctx.bot.send_message(
+                            chat_id=chat_id, text=text, parse_mode=ParseMode.HTML
+                        )
+                        sent += 1
+                        break
+                    except TelegramError:
+                        if attempt == MAX_RETRIES:
+                            log.error("Send to %s failed after %d retries", chat_id, MAX_RETRIES)
+                        continue
+                except TelegramError as exc:
+                    wait = INITIAL_BACKOFF * (2 ** (attempt - 1))
+                    log.warning(
+                        "Send to %s failed (attempt %d/%d), retrying in %.1fs",
+                        chat_id, attempt, MAX_RETRIES, wait,
+                    )
+                    if attempt < MAX_RETRIES:
+                        await asyncio.sleep(wait)
+                    else:
+                        log.error("Send to %s failed after %d retries: %s", chat_id, MAX_RETRIES, exc)
 
             await asyncio.sleep(SEND_DELAY)
 
@@ -390,12 +494,13 @@ class CourseBot:
         app = Application.builder().token(self.config.telegram_token).build()
 
         app.add_handler(CommandHandler("start", self.cmd_start))
-        app.add_handler(CommandHandler("help", self.cmd_start))
+        app.add_handler(CommandHandler("help", self.cmd_help))
         app.add_handler(CommandHandler("stop", self.cmd_stop))
         app.add_handler(CommandHandler("filter", self.cmd_filter))
         app.add_handler(CommandHandler("latest", self.cmd_latest))
         app.add_handler(CommandHandler("search", self.cmd_search))
         app.add_handler(CommandHandler("status", self.cmd_status))
+        app.add_handler(InlineQueryHandler(self.cmd_inline))
         app.add_error_handler(handle_error)
 
         app.job_queue.run_repeating(

@@ -40,7 +40,7 @@ import time
 
 import httpx
 
-from providers import BROWSER_UA, Course, Provider, filter_courses
+from bot.providers import BROWSER_UA, Course, Provider, filter_courses
 
 log = logging.getLogger(__name__)
 

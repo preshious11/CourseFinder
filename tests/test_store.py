@@ -1,6 +1,6 @@
 import pytest
 
-from store import Store
+from bot.store import Store
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ class TestStore:
         assert row["keywords"] == "python, design"
 
     def test_filter_new(self, store):
-        from providers import Course
+        from bot.providers import Course
         c1 = Course(id="udemy:course1", title="Test", url="https://example.com/course1", source="test")
         c2 = Course(id="udemy:course2", title="Test2", url="https://example.com/course2", source="test")
         fresh = store.filter_new([c1, c2])
@@ -46,19 +46,19 @@ class TestStore:
         assert fresh[0].id == "udemy:course2"
 
     def test_filter_new_dedupes_within_batch(self, store):
-        from providers import Course
+        from bot.providers import Course
         c1 = Course(id="udemy:course1", title="Test", url="https://example.com/course1", source="test")
         fresh = store.filter_new([c1, c1])
         assert len(fresh) == 1
 
     def test_mark_seen(self, store):
-        from providers import Course
+        from bot.providers import Course
         c1 = Course(id="udemy:course1", title="Test", url="https://example.com/course1", source="test")
         store.mark_seen([c1])
         assert store.seen_count() == 1
 
     def test_recent(self, store):
-        from providers import Course
+        from bot.providers import Course
         c1 = Course(id="udemy:course1", title="Test", url="https://example.com/course1", source="test")
         store.mark_seen([c1])
         rows = store.recent(limit=5)
@@ -66,7 +66,7 @@ class TestStore:
         assert rows[0]["title"] == "Test"
 
     def test_seen_count(self, store):
-        from providers import Course
+        from bot.providers import Course
         store.mark_seen([Course(id="udemy:course1", title="Test", url="https://example.com/course1", source="test")])
         assert store.seen_count() == 1
 
@@ -78,7 +78,7 @@ class TestStore:
         import sqlite3
         import time
 
-        from providers import Course
+        from bot.providers import Course
         store.subscribe(123)
         store.mark_seen([Course(id="udemy:course1", title="Test", url="https://example.com/course1", source="test")])
         conn = sqlite3.connect(store.path)

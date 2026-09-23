@@ -1,5 +1,5 @@
-from providers import Course, course_slug, filter_courses
-from telegram_bot import matches_filter
+from bot.providers import Course, course_slug, filter_courses
+from bot.telegram_bot import matches_filter
 
 
 class TestCourseSlug:
@@ -113,3 +113,84 @@ class TestMatchesFilter:
     def test_case_insensitive(self):
         c = Course(id="1", title="PYTHON Basics", url="https://example.com", source="test")
         assert matches_filter(c, "python") is True
+
+
+class TestPlatformFiltering:
+    """Test the platform filtering logic in CourseBot."""
+
+    def test_resolve_platform_aliases(self):
+
+        from bot.config import Config
+        from bot.telegram_bot import CourseBot
+        cfg = Config(
+            telegram_token="test",
+            udemy_client_id=None, udemy_client_secret=None,
+            coupon_feeds=[], tutorialbar=True,
+            tutorialbar_categories=[],
+            search_coursera=True, search_edx=True,
+            search_mit=True, search_freecodecamp=True,
+            search_catalogue_pages=5, search_timeout=25,
+            db_path=":memory:", poll_interval=3600,
+            max_per_cycle=10, language="en", admin_chat_id=None,
+        )
+        bot = CourseBot(cfg)
+        assert bot._resolve_platform("coursera") == "coursera"
+        assert bot._resolve_platform("course") == "coursera"
+        assert bot._resolve_platform("edx") == "edx"
+        assert bot._resolve_platform("mit") == "mit"
+        assert bot._resolve_platform("freecodecamp") == "freecodecamp"
+        assert bot._resolve_platform("coursera") == "coursera"
+
+    def test_filter_by_platform(self):
+        import os
+        import tempfile
+
+        from bot.config import Config
+        from bot.providers import Course
+        from bot.telegram_bot import CourseBot
+        c1 = Course(id="1", title="Python", url="https://example.com/1", source="coursera")
+        c2 = Course(id="2", title="Rust", url="https://example.com/2", source="edx")
+        c3 = Course(id="3", title="Data", url="https://example.com/3", source="coursera")
+        with tempfile.TemporaryDirectory() as td:
+            cfg = Config(
+                telegram_token="test",
+                udemy_client_id=None, udemy_client_secret=None,
+                coupon_feeds=[], tutorialbar=True,
+                tutorialbar_categories=[],
+                search_coursera=True, search_edx=True,
+                search_mit=True, search_freecodecamp=True,
+                search_catalogue_pages=5, search_timeout=25,
+                db_path=os.path.join(td, "test.db"), poll_interval=3600,
+                max_per_cycle=10, language="en", admin_chat_id=None,
+            )
+            bot = CourseBot(cfg)
+            courses = [c1, c2, c3]
+            filtered = bot._filter_by_platform(courses, "coursera")
+            assert len(filtered) == 2
+            assert all(c.source == "coursera" for c in filtered)
+
+    def test_filter_by_platform_no_match(self):
+        import os
+        import tempfile
+
+        from bot.config import Config
+        from bot.providers import Course
+        from bot.telegram_bot import CourseBot
+        c1 = Course(id="1", title="Python", url="https://example.com/1", source="coursera")
+        c2 = Course(id="2", title="Rust", url="https://example.com/2", source="edx")
+        with tempfile.TemporaryDirectory() as td:
+            cfg = Config(
+                telegram_token="test",
+                udemy_client_id=None, udemy_client_secret=None,
+                coupon_feeds=[], tutorialbar=True,
+                tutorialbar_categories=[],
+                search_coursera=True, search_edx=True,
+                search_mit=True, search_freecodecamp=True,
+                search_catalogue_pages=5, search_timeout=25,
+                db_path=os.path.join(td, "test.db"), poll_interval=3600,
+                max_per_cycle=10, language="en", admin_chat_id=None,
+            )
+            bot = CourseBot(cfg)
+            courses = [c1, c2]
+            filtered = bot._filter_by_platform(courses, "unknown")
+            assert len(filtered) == 0

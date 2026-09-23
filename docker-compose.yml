@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  bot:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./bot.db:/app/bot.db
+      - ./bot.log:/app/bot.log
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

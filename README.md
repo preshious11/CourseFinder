@@ -1,15 +1,22 @@
 # Free Udemy Course Bot
 
 A Telegram bot that checks for free Udemy courses on a timer and pushes new ones
-to everyone subscribed. Users can filter by keyword so they only hear about
-topics they care about.
+to everyone subscribed. Users can filter by keyword or platform so they only
+hear about topics they care about.
 
 ```
-main.py              entry point
-config.py            env-var config
-providers.py         where courses come from
-store.py             SQLite: subscribers + dedupe
-telegram_bot.py      commands, polling job, broadcast
+bot/               package
+  main.py          entry point (run with python -m bot)
+  config.py        env-var config
+  providers.py     where courses come from
+  store.py         SQLite: subscribers + dedupe
+  telegram_bot.py  commands, inline mode, polling job, broadcast
+  search_providers.py  multi-platform search providers
+__main__.py        python -m bot support
+setup.py           pip install -e .
+Dockerfile         container build
+docker-compose.yml one-command deploy
+tests/             unit tests
 ```
 
 ## Two kinds of "free"
@@ -49,7 +56,13 @@ protection will block you anyway, so it isn't implemented here.
 ```bash
 pip install -r requirements.txt
 cp .env.example .env      # then fill it in
-python main.py
+python -m bot
+```
+
+Or with Docker:
+
+```bash
+docker-compose up -d
 ```
 
 You need at minimum a `TELEGRAM_BOT_TOKEN` from [@BotFather](https://t.me/BotFather).
@@ -68,11 +81,31 @@ cap is announced on following polls rather than dropped.
 |---|---|
 | `/start` | Subscribe |
 | `/stop` | Unsubscribe |
-| `/filter python, design` | Only receive courses matching these keywords (admin only) |
-| `/filter off` | Clear the filter (admin only) |
-| `/latest` | Last 5 finds (admin only) |
-| `/search python` | Search courses across every configured platform (admin only) |
+| `/filter python, design` | Only receive courses matching these keywords |
+| `/filter off` | Clear the filter (get everything) |
+| `/latest` | Last 5 finds |
+| `/search python` | Search courses across every configured platform |
+| `/search python coursera` | Search a specific platform |
 | `/status` | Sources, search platforms, interval, counts |
+| `/help` | Show all commands |
+
+## Keyword filtering
+
+When you subscribe you get every course. Set a keyword filter to narrow it:
+
+- `/filter python, design` — only courses whose title, instructor, level, or
+  tags contain **any** of those keywords
+- `/filter off` — receive everything again
+
+## Inline mode
+
+You can also search from any chat by mentioning the bot inline:
+
+```
+@BotName python course
+```
+
+Returns up to 5 matching courses as inline results that you can send directly.
 
 ## Design notes
 
@@ -87,9 +120,9 @@ the first poll records the backlog silently instead of firing 300 messages at
 your first subscriber.
 
 **Rate limits**: Telegram permits roughly 30 messages/second across different
-chats. There's a 60ms delay between sends and a `RetryAfter` handler that sleeps
-and retries once. Users who block the bot raise `Forbidden` and are removed from
-the subscriber table automatically.
+chats. The broadcast loop uses exponential backoff (up to 3 retries) and
+a 60ms delay between sends. Users who block the bot raise `Forbidden` and
+are removed from the subscriber table automatically.
 
 **Polling interval** defaults to hourly. Don't drop it much below that —
 coupon feeds don't update faster than that anyway, and hammering them is a good
@@ -97,15 +130,17 @@ way to get your IP blocked.
 
 ## Deploying
 
-Any always-on host works: a €4 VPS, Railway, Fly.io, a Raspberry Pi. Two things
-to get right:
+### With Docker Compose
 
-1. `bot.db` must live on a persistent volume, or you lose your subscriber list
-   on every redeploy.
-2. Run exactly one instance. Two processes long-polling the same token will
-   fight over updates and duplicate every message.
+```bash
+docker-compose up -d
+```
 
-A minimal systemd unit:
+The `bot.db` volume is mounted persistently so you keep your subscribers on
+every deploy. Only run one instance — two processes long-polling the same token
+will fight over updates and duplicate every message.
+
+### Systemd
 
 ```ini
 [Unit]
@@ -114,12 +149,19 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=/opt/udemy-free-bot
-ExecStart=/opt/udemy-free-bot/.venv/bin/python main.py
+ExecStart=/opt/udemy-free-bot/.venv/bin/python -m bot
 Restart=always
 RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
+```
+
+### pip install
+
+```bash
+pip install -e .
+udemy-free-bot
 ```
 
 ## Extending
@@ -153,8 +195,9 @@ attribution. Generate them in the Impact dashboard and wrap `course.url` in
 ## Multi-platform search
 
 `/search <query>` fans out across every configured platform concurrently and
-merges the results, labelled by platform. The Udemy sources that drive the
-hourly broadcast take part too, so `/search` covers Udemy plus the rest.
+merges the results, labelled by platform. You can filter by platform too:
+`/search python coursera`. The Udemy sources that drive the hourly broadcast
+take part too, so `/search` covers Udemy plus the rest.
 
 | Platform | How it is reached | Search quality |
 |---|---|---|
@@ -183,3 +226,12 @@ Class Central, Khan Academy, FutureLearn, Pluralsight and LinkedIn Learning are
 open API now answers `410 Gone`), and the last two are partner programmes whose
 credentials are not self-serve. Nothing is scraped around a login, paywall or
 bot protection to reach them.
+
+## Development
+
+```bash
+pip install -r requirements.txt
+pip install ruff pytest
+ruff check .
+pytest tests/ -v
+```
