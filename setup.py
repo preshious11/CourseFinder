@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from setuptools import find_packages, setup
+from setuptools import setup
 
 setup(
     name="udemy-free-bot",
     version="1.0.0",
-    packages=find_packages(),
+    packages=["bot"],
     install_requires=[
         "python-telegram-bot[job-queue]>=21.0",
         "httpx>=0.27",

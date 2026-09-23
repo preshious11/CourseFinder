@@ -1,0 +1,13 @@
+.git
+__pycache__/
+*.pyc
+*.pyo
+.idea/
+.vscode/
+.kilo/
+*.md
+tests/
+.dockerignore
+*.egg-info/
+dist/
+build/
