@@ -45,7 +45,7 @@ WELCOME = (
     "/search python - search courses across every platform\n"
     "/latest - the most recent finds\n"
     "/filter python, design - only get courses matching these keywords\n"
-    "/filter off - remove your filter\n"
+    "/filter off - remove your filter (get everything)\n"
     "/status - what I'm tracking\n"
     "/stop - unsubscribe"
 )
@@ -196,9 +196,6 @@ class CourseBot:
 
     async def cmd_filter(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id = update.effective_chat.id
-        if not self._is_admin(chat_id):
-            await update.message.reply_text("Command restricted to admins.")
-            return
         if not self.store.get_subscriber(chat_id):
             await update.message.reply_text("Send /start first.")
             return
@@ -216,16 +213,13 @@ class CourseBot:
 
         if arg.lower() in {"off", "clear", "none"}:
             self.store.set_keywords(chat_id, "")
-            await update.message.reply_text("Filter removed - you'll get everything.")
+            await update.message.reply_text("Filter removed — you'll get everything.")
             return
 
         self.store.set_keywords(chat_id, arg)
         await update.message.reply_text(f"Filter set: {arg}")
 
     async def cmd_latest(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
-        if not self._is_admin(update.effective_chat.id):
-            await update.message.reply_text("Command restricted to admins.")
-            return
         rows = self.store.recent(limit=5)
         if not rows:
             await update.message.reply_text(
@@ -247,9 +241,6 @@ class CourseBot:
 
     async def cmd_search(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         """/search <query> - look across every configured platform."""
-        if not self._is_admin(update.effective_chat.id):
-            await update.message.reply_text("Command restricted to admins.")
-            return
         query = " ".join(ctx.args).strip()
         if not query:
             await update.message.reply_text(
