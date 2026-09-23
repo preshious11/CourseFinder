@@ -43,17 +43,17 @@ MAX_RETRIES = 3
 INITIAL_BACKOFF = 1.0
 
 WELCOME = (
-    "👋 <b>Free Udemy course alerts</b>\n\n"
-    "You're subscribed. I'll message you whenever I find a new free course.\n\n"
-    "<b>Commands</b>\n"
-    "/search python - search courses across every platform\n"
-    "/search python coursera - search a specific platform\n"
-    "/latest - the most recent finds\n"
-    "/latest python - filter recent by keyword\n"
-    "/filter python, design - only get courses matching these keywords\n"
-    "/filter off - remove your filter (get everything)\n"
-    "/status - what I'm tracking\n"
-    "/stop - unsubscribe"
+    "🎓✨ <b>Free Udemy Course Bot</b> ✨🎓\n\n"
+    "👋 Welcome! I find free courses for you.\n"
+    "📢 You'll get notified whenever I spot a new deal.\n\n"
+    "🏷️ <b>Quick commands</b>\n"
+    "🔍 /search python — search all platforms\n"
+    "🔍 /search python coursera — search one platform\n"
+    "📋 /latest — most recent finds\n"
+    "🔖 /filter python, design — narrow what you see\n"
+    "❌ /filter off — see everything\n"
+    "📊 /status — stats\n"
+    "🚪 /stop — unsubscribe"
 )
 
 
@@ -63,7 +63,7 @@ def format_course(course: Course) -> str:
 
     if course.headline:
         headline = course.headline[:180]
-        lines.append(html.escape(headline))
+        lines.append(f"📝 {html.escape(headline)}")
 
     meta = []
     if course.instructor:
@@ -75,22 +75,26 @@ def format_course(course: Course) -> str:
     if meta:
         lines.append(" · ".join(meta))
 
+    if course.price:
+        lines.append(f"💰 {html.escape(course.price)}")
     if course.coupon_code:
-        lines.append(f"🎟 Coupon: <code>{html.escape(course.coupon_code)}</code>")
-    if course.expires:
-        lines.append(f"⏳ {html.escape(str(course.expires))}")
+        lines.append(f"🎟️ Coupon: <code>{html.escape(course.coupon_code)}</code>")
+    if course.duration:
+        lines.append(f"⏱ {html.escape(course.duration)}")
+    if course.level:
+        lines.append(f"📶 Level: {html.escape(course.level)}")
 
-    lines.append(f'\n<a href="{html.escape(course.url, quote=True)}">Enrol free →</a>')
+    lines.append(f'🔗 <a href="{html.escape(course.url, quote=True)}">Enrol free →</a>')
     return "\n".join(lines)
 
 
 def format_search_results(query: str, courses: list[Course]) -> str:
     """Render multi-platform search results, labelled by platform."""
     title = query.strip().title()
-    lines = [f"📚 <b>{html.escape(title)} Courses</b>\n"]
+    lines = [f"📚 <b>{html.escape(title)} Courses</b> ✨\n"]
 
     for index, course in enumerate(courses, start=1):
-        lines.append(f"<b>{index}. {html.escape(course.title)}</b>")
+        lines.append(f"🏅 <b>{index}. {html.escape(course.title)}</b>")
         lines.append(f"🏫 {html.escape(course.provider)}")
 
         meta = []
@@ -350,11 +354,12 @@ class CourseBot:
     async def cmd_status(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         sources = ", ".join(p.name for p in self.providers) or "none configured"
         await update.message.reply_text(
-            f"Sources: {sources}\n"
-            f"Search platforms: {self._platform_names() or 'none'}\n"
-            f"Checking every {self.config.poll_interval // 60} min\n"
-            f"Courses tracked: {self.store.seen_count():,}\n"
-            f"Subscribers: {self.store.subscriber_count():,}"
+            f"🎓 <b>Bot Status</b>\n\n"
+            f"📡 Sources: {sources}\n"
+            f"🔍 Platforms: {self._platform_names() or 'none'}\n"
+            f"⏰ Interval: {self.config.poll_interval // 60} min\n"
+            f"📚 Courses tracked: {self.store.seen_count():,}\n"
+            f"👥 Subscribers: {self.store.subscriber_count():,}"
         )
 
     async def cmd_inline(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
