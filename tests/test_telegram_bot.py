@@ -164,6 +164,85 @@ class TestHealthStats:
         assert "uptime_s" in stats
 
 
+def _welcome_update(chat_id=1, username="alice", first_name="Alice"):
+    update = MagicMock(spec=Update)
+    update.effective_chat.id = chat_id
+    user = MagicMock()
+    user.username = username
+    user.first_name = first_name
+    update.effective_user = user
+    update.message = AsyncMock()
+    return update
+
+
+def _welcome_ctx(bot_username="TestBot"):
+    ctx = MagicMock()
+    ctx.bot.get_me = AsyncMock(return_value=MagicMock(username=bot_username))
+    return ctx
+
+
+class TestWelcomeUsername:
+    def test_shows_live_subscriber_username(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        update = _welcome_update(username="alice")
+        asyncio.run(bot.cmd_start(update, _welcome_ctx()))
+        text = update.message.reply_text.call_args[0][0]
+        assert "@alice" in text
+
+    def test_different_users_get_their_own_name(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        u1 = _welcome_update(chat_id=1, username="alice")
+        asyncio.run(bot.cmd_start(u1, _welcome_ctx()))
+        t1 = u1.message.reply_text.call_args[0][0]
+        u2 = _welcome_update(chat_id=2, username="bob")
+        asyncio.run(bot.cmd_start(u2, _welcome_ctx()))
+        t2 = u2.message.reply_text.call_args[0][0]
+        assert "@alice" in t1 and "@bob" not in t1
+        assert "@bob" in t2 and "@alice" not in t2
+
+    def test_no_username_falls_back_to_first_name(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        update = _welcome_update(username=None, first_name="Alice")
+        asyncio.run(bot.cmd_start(update, _welcome_ctx()))
+        text = update.message.reply_text.call_args[0][0]
+        assert "Alice" in text
+        assert "@" not in text.split("\n")[0]  # no dangling @
+
+    def test_no_username_no_first_name_falls_back(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        update = _welcome_update(username=None, first_name=None)
+        asyncio.run(bot.cmd_start(update, _welcome_ctx()))
+        text = update.message.reply_text.call_args[0][0]
+        assert "there" in text
+
+    def test_already_subscribed_also_uses_live_name(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        first = _welcome_update(chat_id=5, username="old_name")
+        asyncio.run(bot.cmd_start(first, _welcome_ctx()))
+        second = _welcome_update(chat_id=5, username="new_name")
+        asyncio.run(bot.cmd_start(second, _welcome_ctx()))
+        text = second.message.reply_text.call_args[0][0]
+        assert "already subscribed" in text
+        assert "@new_name" in text
+
+    def test_no_hardcoded_title_or_name(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        update = _welcome_update(username="zzz_unique")
+        asyncio.run(bot.cmd_start(update, _welcome_ctx()))
+        text = update.message.reply_text.call_args[0][0]
+        assert "Free Course Bot" not in text
+        assert "preshious" not in text.lower()
+        assert "@zzz_unique" in text
+
+    def test_inline_example_uses_bot_username_not_hardcoded(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        update = _welcome_update(username="alice")
+        asyncio.run(bot.cmd_start(update, _welcome_ctx(bot_username="RealBot")))
+        text = update.message.reply_text.call_args[0][0]
+        assert "@RealBot" in text
+        assert "this_bot" not in text
+
+
 class TestBuild:
     def test_registers_all_handlers(self, tmp_path):
         bot = _make_bot(tmp_path)

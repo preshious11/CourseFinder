@@ -11,7 +11,7 @@ from typing import Any
 
 _EN: dict[str, str] = {
     "welcome": (
-        "👋 <b>Welcome, @{username}!</b>\n"
+        "👋 <b>Welcome, {username}!</b>\n"
         "──────────────────────\n"
         "I track free Udemy deals and new courses from\n"
         "Coursera, edX, MIT &amp; freeCodeCamp.\n\n"
@@ -59,7 +59,7 @@ _EN: dict[str, str] = {
 
 _ES: dict[str, str] = {
     "welcome": (
-        "👋 <b>¡Bienvenido, @{username}!</b>\n"
+        "👋 <b>¡Bienvenido, {username}!</b>\n"
         "──────────────────────\n"
         "Rastreo ofertas de Udemy y cursos nuevos de\n"
         "Coursera, edX, MIT &amp; freeCodeCamp.\n\n"

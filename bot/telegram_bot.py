@@ -254,7 +254,12 @@ class CourseBot:
         except TelegramError:
             bot_username = "this_bot"
         user = update.effective_user
-        display_name = user.username or user.first_name or "there"
+        if user.username:
+            display_name = f"@{user.username}"
+        elif user.first_name:
+            display_name = user.first_name
+        else:
+            display_name = "there"
         if is_new:
             text = t(
                 "welcome", lang, bot_username=bot_username, username=display_name
