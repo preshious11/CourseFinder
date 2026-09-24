@@ -215,9 +215,22 @@ class Store:
                 [(c.id, c.title, c.url, c.source, now) for c in courses],
             )
 
-    def drain_digest(self, limit: int = 50) -> list[sqlite3.Row]:
-        """Remove and return up to *limit* queued digest entries (oldest first)."""
+    def drain_digest(
+        self, limit: int = 50, max_age_seconds: int | None = None
+    ) -> list[sqlite3.Row]:
+        """Remove and return up to *limit* queued digest entries (oldest first).
+
+        If *max_age_seconds* is set, entries older than that are deleted first
+        and never returned — a daily/weekly digest should not announce a coupon
+        that has almost certainly expired while it sat in the queue.
+        """
+        now = int(time.time())
         with self._conn() as conn:
+            if max_age_seconds is not None:
+                cutoff = now - max_age_seconds
+                conn.execute(
+                    "DELETE FROM digest_queue WHERE queued_at < ?", (cutoff,)
+                )
             rows = conn.execute(
                 "SELECT * FROM digest_queue ORDER BY queued_at ASC LIMIT ?", (limit,)
             ).fetchall()

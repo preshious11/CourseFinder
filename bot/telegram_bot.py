@@ -6,6 +6,7 @@ import asyncio
 import datetime
 import html
 import logging
+import time
 
 from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
 from telegram.constants import ChatAction, ParseMode
@@ -108,14 +109,36 @@ def format_search_results(query: str, courses: list[Course]) -> str:
     return "\n".join(lines)
 
 
+#: How long a queued deal may sit before a digest refuses to send it.
+#: Coupon windows are typically 1-5 days; anything older is likely dead.
+DIGEST_MAX_AGE = {
+    "daily": 48 * 3600,     # 2 days — overnight queue + morning send
+    "weekly": 8 * 86400,    # 8 days — a full week of queueing + Monday send
+}
+
+
+def _age_label(queued_at: int | None) -> str:
+    """Human-readable age for a digest row, e.g. '5h ago'."""
+    if not queued_at:
+        return ""
+    delta = max(0, int(time.time()) - int(queued_at))
+    if delta < 3600:
+        return f"{max(1, delta // 60)}m ago"
+    if delta < 86400:
+        return f"{delta // 3600}h ago"
+    return f"{delta // 86400}d ago"
+
+
 def format_digest(rows: list, language: str = "en") -> str:
     """Render a batch of digest-queued courses as one message."""
     header = t("digest_header", language, count=len(rows))
     lines = [header]
     for row in rows:
+        age = _age_label(row["queued_at"] if "queued_at" in row.keys() else None)
+        suffix = f" ({age})" if age else ""
         lines.append(
             f'• <a href="{html.escape(row["url"], quote=True)}">'
-            f'{html.escape(row["title"])}</a>'
+            f'{html.escape(row["title"])}</a>{suffix}'
         )
     return "\n".join(lines)
 
@@ -679,7 +702,8 @@ class CourseBot:
         subs = self.store.subscribers_by_frequency(frequency)
         if not subs:
             return
-        rows = self.store.drain_digest(limit=100)
+        max_age = DIGEST_MAX_AGE.get(frequency)
+        rows = self.store.drain_digest(limit=100, max_age_seconds=max_age)
         if not rows:
             return
         lang = self.config.language

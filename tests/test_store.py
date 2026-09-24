@@ -150,6 +150,32 @@ class TestDigestQueue:
     def test_drain_empty(self, store):
         assert store.drain_digest() == []
 
+    def test_drain_drops_stale_entries(self, store):
+        import time as _time
+        store.queue_for_digest([self._course("udemy:old")])
+        # Backdate the queued_at to 3 days ago
+        with store._conn() as conn:
+            conn.execute(
+                "UPDATE digest_queue SET queued_at = ?",
+                (_time.time() - 3 * 86400,),
+            )
+        store.queue_for_digest([self._course("udemy:fresh")])
+        rows = store.drain_digest(max_age_seconds=48 * 3600)
+        assert len(rows) == 1
+        assert rows[0]["course_id"] == "udemy:fresh"
+        assert store.digest_count() == 0
+
+    def test_drain_without_max_age_keeps_stale(self, store):
+        import time as _time
+        store.queue_for_digest([self._course()])
+        with store._conn() as conn:
+            conn.execute(
+                "UPDATE digest_queue SET queued_at = ?",
+                (_time.time() - 10 * 86400,),
+            )
+        rows = store.drain_digest()
+        assert len(rows) == 1
+
 
 class TestMetrics:
     def test_bump_and_get(self, store):

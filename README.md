@@ -124,7 +124,15 @@ By default every new course is sent immediately. You can change that:
 
 Digest subscribers' courses are queued in the `digest_queue` table and
 flushed by scheduled jobs. Switching frequency mid-day keeps queued courses —
-they'll appear in the next digest.
+they'll appear in the next digest. Queued deals older than the digest window
+(**48 h** for daily, **8 days** for weekly) are dropped instead of sent, so
+a digest never announces a coupon that has almost certainly expired. Each
+item is labelled with how long ago it was found (e.g. `5h ago`).
+
+**Freshness vs. interval**: `POLL_INTERVAL` (default hourly) only controls how
+quickly the bot *notices* a new deal — instant subscribers are notified in the
+same poll. Set `POLL_INTERVAL=600` for 10-minute checks if you want faster
+pickup; going much lower risks rate-limiting from the source sites.
 
 ## Keyword filtering
 

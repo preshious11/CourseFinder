@@ -108,6 +108,55 @@ class TestFormatDigest:
         out = format_digest(rows, "es")
         assert "Resumen diario" in out
 
+    def test_shows_age_of_queued_items(self):
+        import time
+        rows = [{
+            "title": "Old Deal",
+            "url": "https://x.com/o",
+            "source": "t",
+            "course_id": "o",
+            "queued_at": int(time.time()) - 5 * 3600,  # 5 hours ago
+        }]
+        out = format_digest(rows, "en")
+        assert "5h ago" in out
+
+    def test_missing_queued_at_no_crash(self):
+        rows = [{"title": "T", "url": "https://x.com/t", "source": "t", "course_id": "t"}]
+        out = format_digest(rows, "en")
+        assert "T" in out
+
+
+class TestDigestMaxAge:
+    def test_send_digests_drops_stale(self, tmp_path):
+        import time
+        bot = _make_bot(tmp_path)
+        bot.store.subscribe(1)
+        bot.store.set_frequency(1, "daily")
+        c = Course(id="udemy:stale", title="Stale", url="https://x.com/s", source="test")
+        bot.store.queue_for_digest([c])
+        with bot.store._conn() as conn:
+            conn.execute(
+                "UPDATE digest_queue SET queued_at = ?",
+                (int(time.time()) - 3 * 86400,),  # 3 days old > 48h max
+            )
+        ctx = MagicMock()
+        ctx.bot.send_message = AsyncMock()
+        asyncio.run(bot._send_digests(ctx, "daily"))
+        ctx.bot.send_message.assert_not_awaited()
+        assert bot.store.digest_count() == 0
+
+    def test_send_digests_fresh_item_goes_out(self, tmp_path):
+        bot = _make_bot(tmp_path)
+        bot.store.subscribe(1)
+        bot.store.set_frequency(1, "daily")
+        c = Course(id="udemy:fresh", title="Fresh", url="https://x.com/f", source="test")
+        bot.store.queue_for_digest([c])
+        ctx = MagicMock()
+        ctx.bot.send_message = AsyncMock()
+        asyncio.run(bot._send_digests(ctx, "daily"))
+        ctx.bot.send_message.assert_awaited_once()
+        assert bot.store.digest_count() == 0
+
 
 class TestRateLimitIntegration:
     def test_bot_has_rate_limiter(self):

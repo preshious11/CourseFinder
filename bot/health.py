@@ -53,10 +53,14 @@ class HealthServer:
 
     def start(self) -> None:
         try:
-            self._server = ThreadingHTTPServer(("0.0.0.0", self.port), _HealthHandler)
+            # allow_reuse_address is already 1 on HTTPServer; bind port 0 to
+            # grab an ephemeral port when the caller passes 0.
+            self._server = ThreadingHTTPServer(("127.0.0.1", self.port), _HealthHandler)
         except OSError as exc:
             log.warning("Health server could not bind port %d: %s", self.port, exc)
             return
+        # Reflect the actually-bound port (matters when port=0).
+        self.port = self._server.server_address[1]
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
         log.info("Health server listening on :%d/healthz", self.port)

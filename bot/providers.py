@@ -374,7 +374,6 @@ class RSSCouponProvider(Provider):
             source=self.name,
             headline=(entry.get("summary", "") or "")[:200],
             coupon_code=coupon.group(1) if coupon else None,
-            expires=entry.get("published"),
             tags=[t.get("term") or "" for t in entry.get("tags", []) or []],
         )
 
