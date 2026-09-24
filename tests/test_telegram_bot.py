@@ -1,5 +1,10 @@
+import asyncio
 import os
 import tempfile
+from unittest.mock import AsyncMock, MagicMock
+
+from telegram import Update
+from telegram.error import Conflict, TelegramError
 
 from bot.config import Config
 from bot.providers import Course
@@ -8,6 +13,7 @@ from bot.telegram_bot import (
     format_course,
     format_digest,
     format_search_results,
+    handle_error,
 )
 
 
@@ -171,3 +177,44 @@ class TestBuild:
         jobs = app.job_queue.jobs()
         # poll, prune, daily digest, weekly digest
         assert len(jobs) >= 4
+
+    def test_error_handler_is_async(self):
+        import inspect
+        assert inspect.iscoroutinefunction(handle_error)
+
+
+class TestHandleError:
+    def _ctx(self, error):
+        ctx = MagicMock()
+        ctx.error = error
+        return ctx
+
+    def _update_with_message(self):
+        update = MagicMock(spec=Update)
+        msg = AsyncMock()
+        update.effective_message = msg
+        return update, msg
+
+    def test_conflict_does_not_reply(self, caplog):
+        update, msg = self._update_with_message()
+        ctx = self._ctx(Conflict("terminated by other getUpdates request"))
+        asyncio.run(handle_error(update, ctx))
+        msg.reply_text.assert_not_awaited()
+
+    def test_generic_error_replies_awaited(self):
+        update, msg = self._update_with_message()
+        ctx = self._ctx(TelegramError("boom"))
+        asyncio.run(handle_error(update, ctx))
+        msg.reply_text.assert_awaited_once()
+
+    def test_no_update_no_crash(self):
+        ctx = self._ctx(TelegramError("boom"))
+        asyncio.run(handle_error(None, ctx))  # must not raise
+
+    def test_reply_failure_is_swallowed(self):
+        update = MagicMock(spec=Update)
+        msg = AsyncMock()
+        msg.reply_text.side_effect = TelegramError("gone")
+        update.effective_message = msg
+        ctx = self._ctx(TelegramError("boom"))
+        asyncio.run(handle_error(update, ctx))  # must not raise

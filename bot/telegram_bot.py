@@ -9,7 +9,7 @@ import logging
 
 from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
 from telegram.constants import ChatAction, ParseMode
-from telegram.error import Forbidden, RetryAfter, TelegramError
+from telegram.error import Conflict, Forbidden, RetryAfter, TelegramError
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -128,12 +128,25 @@ def matches_filter(course: Course, keywords: str) -> bool:
     return any(kw.strip() in blob for kw in keywords.split(",") if kw.strip())
 
 
-def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Global error handler: log it, don't crash the polling loop."""
-    log.error("Unhandled error: %s", context.error, exc_info=context.error)
+    err = context.error
+
+    if isinstance(err, Conflict):
+        # Another instance is polling with the same token. Replying would
+        # also fail, and the user cannot act on it from chat — log loudly.
+        log.critical(
+            "getUpdates conflict: another process is using this bot token. "
+            "Stop the old container/instance (docker ps, Railway deployments, "
+            "local `python -m bot`) so only one runs."
+        )
+        return
+
+    log.error("Unhandled error: %s", err, exc_info=err)
+
     if isinstance(update, Update) and update.effective_message:
         try:
-            update.effective_message.reply_text(
+            await update.effective_message.reply_text(
                 "Something went wrong. Try again shortly.",
                 parse_mode=ParseMode.HTML,
             )
