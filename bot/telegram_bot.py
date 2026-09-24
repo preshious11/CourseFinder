@@ -253,11 +253,15 @@ class CourseBot:
             bot_username = (await ctx.bot.get_me()).username
         except TelegramError:
             bot_username = "this_bot"
+        user = update.effective_user
+        display_name = user.username or user.first_name or "there"
         if is_new:
-            text = t("welcome", lang, bot_username=bot_username)
+            text = t(
+                "welcome", lang, bot_username=bot_username, username=display_name
+            )
         else:
             text = t("already_subscribed", lang) + t(
-                "welcome", lang, bot_username=bot_username
+                "welcome", lang, bot_username=bot_username, username=display_name
             )
         await update.message.reply_text(
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
