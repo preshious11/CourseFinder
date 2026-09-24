@@ -249,7 +249,16 @@ class CourseBot:
         chat_id = update.effective_chat.id
         lang = self._lang(chat_id)
         is_new = self.store.subscribe(chat_id)
-        text = t("welcome", lang) if is_new else t("already_subscribed", lang) + t("welcome", lang)
+        try:
+            bot_username = (await ctx.bot.get_me()).username
+        except TelegramError:
+            bot_username = "this_bot"
+        if is_new:
+            text = t("welcome", lang, bot_username=bot_username)
+        else:
+            text = t("already_subscribed", lang) + t(
+                "welcome", lang, bot_username=bot_username
+            )
         await update.message.reply_text(
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
         )

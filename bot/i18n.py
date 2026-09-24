@@ -11,20 +11,29 @@ from typing import Any
 
 _EN: dict[str, str] = {
     "welcome": (
-        "🎓✨ <b>Free Udemy Course Bot</b> ✨🎓\n\n"
-        "👋 Welcome! I find free courses for you.\n"
-        "📢 You'll get notified whenever I spot a new deal.\n\n"
-        "🏷️ <b>Quick commands</b>\n"
-        "🔍 /search python — search all platforms\n"
-        "🔍 /search python coursera — search one platform\n"
-        "📋 /latest — most recent finds\n"
-        "🔖 /filter python, design — narrow what you see\n"
-        "❌ /filter off — see everything\n"
-        "🔔 /freq daily — change notification frequency\n"
-        "📊 /status — stats\n"
-        "🚪 /stop — unsubscribe"
+        "🎓 <b>Free Course Bot</b>\n"
+        "──────────────────────\n"
+        "I track free Udemy deals and new courses from\n"
+        "Coursera, edX, MIT &amp; freeCodeCamp.\n\n"
+
+        "🔔 <b>Notifications</b>\n"
+        "New finds are pushed to you automatically.\n"
+        "Use /filter to narrow topics, /freq to change how often.\n\n"
+
+        "🔍 <b>Two ways to search</b>\n\n"
+        "<b>1 · In this chat</b>\n"
+        "<code>/search python</code>\n"
+        "<code>/search python coursera</code>  (one platform)\n\n"
+        "<b>2 · From any chat (inline)</b>\n"
+        "Type <code>@{bot_username} python</code>\n"
+        "anywhere on Telegram — results appear as cards\n"
+        "you can forward without leaving that chat.\n\n"
+        "──────────────────────\n"
+        "📋 /latest · /course · /categories\n"
+        "🔖 /filter · 🔔 /freq · 📊 /status\n"
+        "🚪 /stop to unsubscribe · /help for everything"
     ),
-    "already_subscribed": "You're already subscribed. ",
+    "already_subscribed": "✅ You're already subscribed.\n\n",
     "unsubscribed": "Unsubscribed. Send /start any time to come back.",
     "not_subscribed": "You weren't subscribed.",
     "send_start_first": "Send /start first.",
@@ -50,20 +59,29 @@ _EN: dict[str, str] = {
 
 _ES: dict[str, str] = {
     "welcome": (
-        "🎓✨ <b>Bot de Cursos Udemy Gratis</b> ✨🎓\n\n"
-        "👋 ¡Bienvenido! Encuentro cursos gratis para ti.\n"
-        "📢 Te avisaré cuando encuentre una nueva oferta.\n\n"
-        "🏷️ <b>Comandos rápidos</b>\n"
-        "🔍 /search python — buscar en todas las plataformas\n"
-        "🔍 /search python coursera — buscar en una plataforma\n"
-        "📋 /latest — hallazgos recientes\n"
-        "🔖 /filter python, design — filtrar lo que ves\n"
-        "❌ /filter off — ver todo\n"
-        "🔔 /freq daily — cambiar frecuencia de notificaciones\n"
-        "📊 /status — estadísticas\n"
-        "🚪 /stop — darte de baja"
+        "🎓 <b>Bot de Cursos Gratis</b>\n"
+        "──────────────────────\n"
+        "Rastreo ofertas de Udemy y cursos nuevos de\n"
+        "Coursera, edX, MIT &amp; freeCodeCamp.\n\n"
+
+        "🔔 <b>Notificaciones</b>\n"
+        "Te aviso automáticamente de los nuevos hallazgos.\n"
+        "Usa /filter para filtrar temas, /freq para cambiar la frecuencia.\n\n"
+
+        "🔍 <b>Dos formas de buscar</b>\n\n"
+        "<b>1 · En este chat</b>\n"
+        "<code>/search python</code>\n"
+        "<code>/search python coursera</code>  (una plataforma)\n\n"
+        "<b>2 · Desde cualquier chat (inline)</b>\n"
+        "Escribe <code>@{bot_username} python</code>\n"
+        "en cualquier parte de Telegram — los resultados aparecen\n"
+        "como tarjetas que puedes reenviar sin salir de ese chat.\n\n"
+        "──────────────────────\n"
+        "📋 /latest · /course · /categories\n"
+        "🔖 /filter · 🔔 /freq · 📊 /status\n"
+        "🚪 /stop para darte de baja · /help para todo"
     ),
-    "already_subscribed": "Ya estás suscrito. ",
+    "already_subscribed": "✅ Ya estás suscrito.\n\n",
     "unsubscribed": "Dado de baja. Envía /start cuando quieras volver.",
     "not_subscribed": "No estabas suscrito.",
     "send_start_first": "Envía /start primero.",
