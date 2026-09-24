@@ -7,17 +7,24 @@ hear about topics they care about.
 ```
 bot/               package
   __main__.py      `python -m bot` entry point (must live inside the package)
-  main.py          startup: logging, Config, CourseBot, run_polling
+  main.py          startup: logging, Config, CourseBot, health, run_polling
   config.py        env-var config
   providers.py     where courses come from
-  store.py         SQLite: subscribers + dedupe
-  telegram_bot.py  commands, inline mode, polling job, broadcast
+  store.py         SQLite: subscribers, dedupe, digest queue, metrics, migrations
+  telegram_bot.py  commands, inline mode, polling job, broadcast, digests
   search_providers.py  multi-platform search providers
+  http_utils.py    shared HTTP retry logic
+  rate_limit.py    per-user command rate limiting
+  search_cache.py  short-lived TTL cache for search results
+  metrics.py       in-process counters
+  i18n.py          translations (en, es)
+  shutdown.py      graceful shutdown coordination
+  health.py        optional /healthz HTTP endpoint
 setup.py           pip install -e .  (installs the `udemy-free-bot` script)
 railway.json       Railway build/start config
 Dockerfile         container build
 docker-compose.yml one-command deploy
-tests/             unit tests
+tests/             unit tests (114 tests)
 ```
 
 > `python -m bot` resolves to `bot/__main__.py`, so that file has to be inside the
@@ -88,11 +95,36 @@ cap is announced on following polls rather than dropped.
 | `/stop` | Unsubscribe |
 | `/filter python, design` | Only receive courses matching these keywords |
 | `/filter off` | Clear the filter (get everything) |
+| `/freq instant\|daily\|weekly\|paused` | Set notification frequency |
 | `/latest` | Last 5 finds |
+| `/latest coursera` | Last 5 finds from a platform |
+| `/course <slug>` | Course details by slug or URL |
+| `/categories` | Browse course categories |
 | `/search python` | Search courses across every configured platform |
 | `/search python coursera` | Search a specific platform |
-| `/status` | Sources, search platforms, interval, counts |
+| `/status` | Sources, platforms, interval, counts, metrics |
 | `/help` | Show all commands |
+
+## Notification frequency
+
+By default every new course is sent immediately. You can change that:
+
+| Frequency | Behaviour |
+|---|---|
+| `instant` | Get each course as it's found (default) |
+| `daily` | Receive a bundled digest once a day at ~09:00 UTC |
+| `weekly` | Receive a bundled digest every Monday at ~10:00 UTC |
+| `paused` | No notifications (courses still queued for later) |
+
+```
+/freq daily      # switch to daily digest
+/freq instant    # back to immediate
+/freq paused     # mute
+```
+
+Digest subscribers' courses are queued in the `digest_queue` table and
+flushed by scheduled jobs. Switching frequency mid-day keeps queued courses —
+they'll appear in the next digest.
 
 ## Keyword filtering
 
@@ -111,6 +143,68 @@ You can also search from any chat by mentioning the bot inline:
 ```
 
 Returns up to 5 matching courses as inline results that you can send directly.
+
+## Rate limiting
+
+Each user is limited to 10 commands per 60 seconds. Exceeding the limit
+returns a polite "try again in Ns" message. The limiter is per-chat and uses
+a sliding window, so bursts are smoothed naturally.
+
+## Search caching
+
+`/search` results are cached for 60 seconds per query+platform key, so
+repeated or overlapping queries don't re-crawl catalogue pages. Inline-query
+results use the same cache.
+
+## Webhook mode
+
+Set `WEBHOOK_URL` (and optionally `WEBHOOK_PORT`) to receive updates via
+webhook instead of long-polling. Useful behind a reverse proxy or when
+long-polling is unreliable:
+
+```bash
+WEBHOOK_URL=https://your-domain.com
+WEBHOOK_PORT=8443
+```
+
+When `WEBHOOK_URL` is unset the bot uses long-polling (the default).
+
+## Health check
+
+Set `HEALTH_PORT` to expose a `GET /healthz` endpoint returning JSON stats:
+
+```bash
+HEALTH_PORT=8080
+# curl http://localhost:8080/healthz
+# {"status":"ok","subscribers":3,"courses":140,"digest_queued":0,"uptime_s":3600}
+```
+
+Disabled by default (unset or 0).
+
+## Graceful shutdown
+
+SIGINT/SIGTERM trigger an orderly shutdown: in-flight broadcasts finish,
+the health server stops, and the process exits cleanly. The `ShutdownManager`
+runs registered callbacks in order.
+
+## Multi-language
+
+User-facing strings are translated via `bot/i18n.py`. English and Spanish
+are included; the bot's `LANGUAGE` env var sets the default. Missing keys
+fall back to English. Add a language by adding a dict to `_TRANSLATIONS`.
+
+## Database migrations
+
+Schema changes run automatically on startup. `PRAGMA user_version` tracks
+the current version; each pending migration in `MIGRATIONS` is applied in
+order, then the version is stamped to `LATEST_SCHEMA_VERSION`. Existing
+data is preserved across migrations.
+
+## Metrics
+
+In-memory counters track polls, searches, messages sent, cache hits/misses,
+and per-command usage. Visible in `/status` and on `/healthz`. The `metrics`
+table in SQLite provides persistence across restarts via `bump_metric()`.
 
 ## Design notes
 
@@ -258,7 +352,10 @@ bot protection to reach them.
 
 ```bash
 pip install -r requirements.txt
-pip install ruff pytest
+pip install ruff pytest pytest-cov
 ruff check .
 pytest tests/ -v
+pytest tests/ --cov=bot --cov-report=term-missing   # with coverage
 ```
+
+CI runs ruff, mypy (non-blocking), and pytest with `--cov-fail-under=60`.

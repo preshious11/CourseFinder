@@ -12,6 +12,9 @@ setup(
         "feedparser>=6.0",
         "APScheduler>=3.0",
     ],
+    extras_require={
+        "dev": ["ruff", "pytest", "pytest-cov", "mypy"],
+    },
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [

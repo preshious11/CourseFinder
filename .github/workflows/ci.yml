@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install ruff pytest
+          pip install ruff pytest pytest-cov mypy
 
       - name: Lint with ruff
         run: ruff check . --exclude .kilo,__pycache__
@@ -33,5 +33,5 @@ jobs:
       - name: Type-check with mypy
         run: mypy bot/ --ignore-missing-imports || true
 
-      - name: Test with pytest
-        run: pytest tests/ -v
+      - name: Test with pytest + coverage
+        run: pytest tests/ -v --cov=bot --cov-report=term-missing --cov-fail-under=60

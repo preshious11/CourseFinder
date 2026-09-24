@@ -40,6 +40,7 @@ import time
 
 import httpx
 
+from bot.http_utils import fetch_json_with_retry
 from bot.providers import BROWSER_UA, Course, Provider, filter_courses
 
 log = logging.getLogger(__name__)
@@ -93,33 +94,9 @@ class SearchProvider(Provider):
 
     async def _get_json(self, client: httpx.AsyncClient, url: str, params: dict):
         """GET returning parsed JSON, or None. Retries once on 429/503."""
-        for attempt in (1, 2):
-            try:
-                resp = await client.get(url, params=params, headers=JSON_HEADERS)
-            except httpx.HTTPError as exc:
-                # Some httpx errors (timeouts especially) stringify to "", so
-                # name the class or the log line says nothing at all.
-                log.error("%s: request failed: %s: %s",
-                          self.name, type(exc).__name__, exc or "(no detail)")
-                return None
-
-            if resp.status_code in self.RETRY_STATUS and attempt == 1:
-                wait = self._retry_after(resp)
-                log.warning("%s: HTTP %s, retrying in %.0fs",
-                            self.name, resp.status_code, wait)
-                await asyncio.sleep(wait)
-                continue
-
-            if resp.status_code != 200:
-                log.error("%s: HTTP %s from %s", self.name, resp.status_code, url)
-                return None
-
-            try:
-                return resp.json()
-            except ValueError:
-                log.error("%s: response was not JSON", self.name)
-                return None
-        return None
+        return await fetch_json_with_retry(
+            client, url, params=params, headers=JSON_HEADERS, logger=log, name=self.name
+        )
 
 
 class PagedCatalogueProvider(SearchProvider):

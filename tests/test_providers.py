@@ -132,6 +132,7 @@ class TestPlatformFiltering:
             search_catalogue_pages=5, search_timeout=25,
             db_path=":memory:", poll_interval=3600,
             max_per_cycle=10, language="en", admin_chat_id=None,
+            webhook_url=None, webhook_port=8443, health_port=None,
         )
         bot = CourseBot(cfg)
         assert bot._resolve_platform("coursera") == "coursera"
@@ -162,6 +163,7 @@ class TestPlatformFiltering:
                 search_catalogue_pages=5, search_timeout=25,
                 db_path=os.path.join(td, "test.db"), poll_interval=3600,
                 max_per_cycle=10, language="en", admin_chat_id=None,
+                webhook_url=None, webhook_port=8443, health_port=None,
             )
             bot = CourseBot(cfg)
             courses = [c1, c2, c3]
@@ -189,6 +191,7 @@ class TestPlatformFiltering:
                 search_catalogue_pages=5, search_timeout=25,
                 db_path=os.path.join(td, "test.db"), poll_interval=3600,
                 max_per_cycle=10, language="en", admin_chat_id=None,
+                webhook_url=None, webhook_port=8443, health_port=None,
             )
             bot = CourseBot(cfg)
             courses = [c1, c2]

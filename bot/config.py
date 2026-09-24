@@ -65,6 +65,9 @@ class Config:
     max_per_cycle: int          # cap announcements so nobody gets 200 messages
     language: str
     admin_chat_id: int | None
+    webhook_url: str | None
+    webhook_port: int
+    health_port: int | None   # None = health endpoint disabled
 
     @classmethod
     def from_env(cls) -> Config:
@@ -86,6 +89,7 @@ class Config:
             for c in os.getenv("TUTORIALBAR_CATEGORIES", "").split(",")
             if c.strip()
         ]
+        webhook_url = os.getenv("WEBHOOK_URL", "").strip() or None
 
         return cls(
             telegram_token=token,
@@ -105,6 +109,9 @@ class Config:
             max_per_cycle=_int("MAX_PER_CYCLE", 10),
             language=os.getenv("LANGUAGE", "en"),
             admin_chat_id=int(admin) if admin.lstrip("-").isdigit() else None,
+            webhook_url=webhook_url,
+            webhook_port=_int("WEBHOOK_PORT", 8443),
+            health_port=_int("HEALTH_PORT", 0) or None,
         )
 
     @property

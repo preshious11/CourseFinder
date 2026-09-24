@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 
 import httpx
 
+from bot.http_utils import fetch_with_retry
+
 log = logging.getLogger(__name__)
 
 UDEMY_API = "https://www.udemy.com/api-2.0/courses/"
@@ -136,9 +138,6 @@ def filter_courses(courses: list[Course], query: str, limit: int = 10) -> list[C
 class Provider:
     name = "provider"
 
-    #: Transient statuses that are worth one polite retry.
-    RETRY_STATUS = (429, 503)
-
     async def fetch(self) -> list[Course]:  # pragma: no cover - interface
         raise NotImplementedError
 
@@ -173,38 +172,7 @@ class Provider:
 
     async def _get(self, client: httpx.AsyncClient, url: str):
         """GET a URL, retrying once when the server asks us to back off."""
-        for attempt in (1, 2):
-            try:
-                resp = await client.get(url)
-            except httpx.HTTPError as exc:
-                log.error("%s: %s failed: %s", self.name, url, exc)
-                return None
-
-            if resp.status_code in self.RETRY_STATUS and attempt == 1:
-                wait = self._retry_after(resp)
-                log.warning(
-                    "%s: %s returned %s, retrying in %.0fs",
-                    self.name,
-                    url,
-                    resp.status_code,
-                    wait,
-                )
-                await asyncio.sleep(wait)
-                continue
-
-            if resp.status_code != 200:
-                log.error("%s: %s returned HTTP %s", self.name, url, resp.status_code)
-                return None
-
-            return resp
-        return None
-
-    @staticmethod
-    def _retry_after(resp: httpx.Response, default: float = 10.0) -> float:
-        try:
-            return min(float(resp.headers.get("retry-after", default)), 60.0)
-        except (TypeError, ValueError):
-            return default
+        return await fetch_with_retry(client, url, logger=log, name=self.name)
 
 
 class UdemyAffiliateProvider(Provider):
